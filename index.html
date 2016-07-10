@@ -1,0 +1,1118 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta http-equiv="Cache-Control" content="no-cache" />
+		
+		<link rel="stylesheet" href="css/leaflet.css" />
+		<link rel="stylesheet" type="text/css" href="css/main.css">
+
+		<script src="js/jquery-2.2.0.min.js"></script>
+		<script src="js/d3.min.js"></script>
+		<script src="js/leaflet.js"></script>		
+		<script src="js/uService.js"></script>
+		<script src="js/Main.js"></script>
+		<script src="js/objectlink.js"></script></head>
+		<script src="js/jscharts.js"></script></head>
+
+<script>
+////////////policy
+	var classes_ = objectlink.gOrm("gAnd",[[1],"n,id"]);
+	var classes = hash4arr(classes_);
+	var oids = [];
+	
+	var key = $_GET("key", "#", location.hash);
+	var userKey = parseInt(key) || objectlink.getObjectFromClass("Ключи доступа пользователей", "undefined") || 0;
+	var userId = objectlink.gOrm("gAnd",[[userKey, classes["Пользователи"]]]);
+	if (userId && userId.length){
+		userId = userId[0][0];
+		var mainInterface = getMainInterfaceKey(userId);
+		
+		if (mainInterface) {
+			$(document).ready(function() {
+				var pLogin = gDom("pLogin");
+				pLogin.style.left = Math.round(windowWidth()/2) - 100 + "px";
+				pLogin.style.top = Math.round(windowHeight()/2) - 50 + "px";
+				var policy = showInterfaceElements(userId, mainInterface);
+
+				var bLogin = gDom("bLogin");
+				bLogin.onclick = function(){
+					var eUser = $("#eUser").val();
+					var password = document.fLogin.ePassword.value;
+				
+					var u = objectlink.gOrm("gAnd",[[classes["Пользователи"]],"id",false,"and n='"+eUser+"'"]);
+					var p = objectlink.gOrm("gAnd",[[classes["Пароли пользователей"]],"id",false,"and n='"+password+"'"]);
+					if (u && p && u.length && p.length){
+						var key = objectlink.gOrm("gAnd", [[u[0][0], p[0][0], classes["Ключи доступа пользователей"]]]);
+						if (key && key.length){
+							gDom("mainContainer").hidden = true;
+						}
+					}
+				}
+			});
+		}
+	}
+			
+////////////documentReady
+	$(document).ready(function(){
+		var pSearch = gDom("pSearch");
+
+		var pMain = gDom("pMain");
+		pMain.style.height = windowHeight()-170+"px";
+		var pObjects = gDom("pObjects");
+
+		var pDop =  gDom("pDop");
+		pDop.style.left = windowWidth()-parseInt(pDop.style.width)-5+"px";
+		pDop.style.top = windowHeight()-parseInt(pDop.style.height)-5+"px";
+		var pDopData = gDom("pDopData");
+
+		var setup = gDom("setup");
+		var eDopWidth = gDom("eDopWidth");
+		var eDopHeight = gDom("eDopHeight");
+		eDopWidth.onchange = function(){
+			pDop.style.width = this.value;
+			pDop.style.left = windowWidth()-parseInt(pDop.style.width)-5+"px";
+		};
+		eDopHeight.onchange = function(){
+			pDop.style.height = this.value;
+			pDop.style.top = windowHeight()-parseInt(pDop.style.height)-5+"px";
+		};
+		var logo = gDom("logo");
+		logo.style.left = windowWidth()-parseInt(logo.style.width)-5+"px";
+		logo.onclick = function(){
+			eDopWidth.value=pDop.style.width;
+			eDopHeight.value=pDop.style.height;
+			showModalHtml(setup, true);
+		}
+		
+////////////////modal
+		var modal = document.getElementById('myModal');
+		var span = document.getElementsByClassName("close")[0];
+
+		span.onclick = function() {
+			modal.style.display = "none";
+		}
+
+		window.onclick = function(event) {
+			if (event.target == modal) {
+				modal.style.display = "none";
+			}
+		}
+		
+		window.onkeydown = function(event) {
+			if (event.keyCode == 27) {
+				modal.style.display = "none";
+			}
+		};
+
+////////////////showModal
+		function showModal(uri, _oid, mainoid){
+			gDom("modalTitle").innerHTML = "";
+			gDom("modalBody").innerHTML = "";
+			gDom("modalFooter").innerHTML = "";
+			
+			if (_oid) location.href = mainHtmlPage+"#oid="+mainoid+"&"+objectIdUrlKey+"="+_oid;
+			modal.style.display = "block";
+			getHttp(uri, function(data){ $("#modalBody").append(data); }, true);
+			//loadXML(uri, true, true, false, function(data){
+			//	$("#modalBody").append(data);
+			//});
+		
+		}
+
+		function showModalHtml(html, clear){
+			if (clear){
+				gDom("modalTitle").innerHTML = "";
+				gDom("modalBody").innerHTML = "";
+				gDom("modalFooter").innerHTML = "";
+			}
+			$("#modalBody").append(html);
+			modal.style.display = "block";
+			
+		}
+
+		function showInf(container, html){
+			container.innerHTML = "";
+			$(container).append(html);
+			container.parentNode.hidden = false;				
+		}
+		
+////////////////map init
+		var map = L.map('map');
+		var mapObjects = initMap(map);
+		
+		var arrComm = [];
+		var arrLines = [];
+		var arendatorMarker;
+		var arendatorMarker2;
+		var arendatorMarkers = [];
+		var polylines = [];
+
+		window.onhashchange = function(){
+			hashchange(mapObjects, arrComm, arrLines);
+		}
+
+		var oid = $_GET("oid", "#", location.hash);
+		if (oid) hashchange(mapObjects, arrComm, arrLines);
+		
+		//if (location.hash == "#oid=115") {
+		//	hashchange(mapObjects, arrComm, arrLines);
+		//}
+		//location.href = mainHtmlPage+"#oid=115";
+
+		function setCommVisible(commNum, visible){
+			if (commNum == undefined || commNum > arrComm.length-1) return;
+			for (var i=0; i < arrComm[commNum].length; i++) {
+				arrComm[commNum][i].setOpacity(visible ? 1 : 0);
+			}
+			for (var i=0; i < arrLines[commNum].length; i++) {
+				arrLines[commNum][i].setStyle({opacity: visible ? 1 : 0});
+			}
+		}
+		function setCommsVisible(visible){
+			for (var i=0; i < arrComm.length; i++) {
+				setCommVisible(i, visible);
+			}
+			for (var i=0; i < arendatorMarkers.length; i++){
+				arendatorMarkers[i].setOpacity(visible ? 1 : 0);
+				//arendatorMarker.setOpacity(visible ? 1 : 0);
+				//arendatorMarker2.setOpacity(visible ? 1 : 0);
+			}
+			
+		}
+		
+		function hashchange(mapObjects, arrComm, arrLines){
+			//var hideDopPanel = oid != $_GET("oid", "#", location.hash);
+			oid = $_GET("oid", "#", location.hash);// || "115";
+			if (!oid) return;
+			var ind = mapObjects.objects.oid.indexOf(oid);
+			if (~ind) map.setView([mapObjects.objects.lat[ind], mapObjects.objects.lon[ind]], 18);
+			
+			pObjects.innerHTML = "";
+			pDop.hidden = false;
+////////////about object			
+			var zd = objectlink.gOrm("gT2",[["Объект","Здания и сооружения","Адрес","ИК","Ответственный","ТУ"],[[3,0],[4,3],[5,3]]/*,[3,5]*/,[],false,null, "and `id_Объект` = "+oid+" order by `id_Здания и сооружения`"]);
+			var zu = objectlink.gOrm("gT2",[["Объект","Земельные участки"],[]/*,[]*/,[],false,null, "and `id_Объект` = "+oid+" order by `id_Земельные участки`"]);
+			$(pObjects).append("Объект: <label style='color:#00ff00'>"+zd[0][1]+"</label><br>");
+			$(pObjects).append("Адрес: <label style='color:#00ff00'>"+zd[0][5]+"</label><br>");
+			$(pObjects).append("Территориальное управление: <label style='color:#00ff00'>"+zd[0][11]+"</label><br>");
+			$(pObjects).append("Имущественный комплекс: <label style='color:#00ff00'>"+zd[0][7]+" ("+zd[0][9]+") </label><br>");
+////////////object communications
+			var getCommVisible;
+			
+			var comms = ["Электроснабжение","Отопление","ХВС","Канализация","Интернет","Вывоз КГМ и ТБО","Охрана"];
+			var getCommOnObject = objectlink.gOrm("gT2",[["Объект"].concat(comms),[]/*,[]*/,[],false,decorateArr(comms, "`id_", "`")/*.join(",")*/," and `id_Объект`="+oid+" limit 1"]);
+			var electroId = getCommOnObject[0][0];
+			var teploId = getCommOnObject[0][1];
+			var waterId = getCommOnObject[0][2];
+			var kanalId = getCommOnObject[0][3];
+			var internetId = getCommOnObject[0][4];
+			var musorId = getCommOnObject[0][5];
+			var securityId = getCommOnObject[0][6];
+			arrParamsComm = [
+				["Электроснабжение", "Договоры", "Счетчики", "Потребляемая мощность", "Расходы по счетчикам за год", "Потребление за год", "Файлы", "Объект"],
+				["Отопление", "Договоры", "Счетчики", "Потребляемая мощность", "Расходы по счетчикам за год", "Потребление за год", "Файлы", "Объект"],
+				["ХВС", "Договоры", "Счетчики", "Потребляемая мощность", "Расходы по счетчикам за год", "Потребление за год", "Файлы", "Объект"],
+				["Канализация", "Договоры", "Счетчики", "Потребляемая мощность", "Расходы по счетчикам за год", "Потребление за год", "Файлы", "Объект"],
+				["Интернет", "Файлы", "Объект"],
+				["Вывоз КГМ и ТБО", "Файлы", "Объект"],
+				["Охрана", "Вид охраны", "Количество постов", "Количество человек", "ФИО", "Файлы", "Объект"],
+				["Работники", "Инф о работнике", "Файлы", "Объект"],
+				[],
+			]
+			$(pObjects).append("<br>Коммуникации на объекте:<br>");
+			var el = [
+				[0,"Электроснабжение","images/electro2.png", [arrParamsComm[0]]],
+				[1,"Отопление","images/batery2.png", [arrParamsComm[1]]],
+				[2,"Водоснабжение","images/coldwater2.png", [arrParamsComm[2]]],
+				[3,"Канализация","images/unitaz2.png", [arrParamsComm[3]]],
+			];
+			var fclick = function(){
+				pDopData.innerHTML = "";
+				for (var i=0; i < this.params.length; i++){
+					fillCard2(this.params[i], oid, pDopData);
+				}
+				pDop.hidden = false;
+				setCommsVisible(false);
+				getCommVisible = this.ind;
+				setCommVisible(getCommVisible, true);
+				
+			}
+			if (oid==115) loadPanel(el, pObjects, 0, 1, fclick, 2, true, 3);
+////////////other object information
+			$(pObjects).append("Дополнительно:<br>");
+			var el = [
+				[0,"Интернет","images/vols2.png", [arrParamsComm[4]]],
+				[1,"Вывоз КГМ и ТБО","images/tbo.png", [arrParamsComm[5]]],
+				[2,"Охрана","images/security2.png", [arrParamsComm[6]]],
+				[3,"Работники","images/personal.png", [arrParamsComm[7]]],
+				[4,"Арендаторы","images/money.png", getArendatorInf],
+				[5,"Отчеты","images/report.png", getReportsInf],
+			];
+			var fclick = function(){
+				pDopData.innerHTML = "";
+				if (typeof(this.params) == "object") {
+					for (var i=0; i < this.params.length; i++){
+						fillCard2(this.params[i], oid, pDopData);
+						//if (this.params[i][0] == "Работники") {
+						//	console.log(123);
+						//}
+					}
+				} else {
+					this.params(polylines);
+				}
+				pDop.hidden = false;				
+				setCommsVisible(false);
+				getCommVisible = undefined;
+			}
+			if (oid==115) loadPanel(el, pObjects, 0, 1, fclick, 2, true, 3);
+			
+////////////include territorias
+			$(pObjects).append("<br>Земельный участок:<br>");
+			var fclick = function(){
+				pDopData.innerHTML = "";
+				$(pDopData).append("<h3>"+this.innerHTML+"</h3>");
+				fillCard2(["Правоустанавливающие документы", "Объект права", "Адрес", "Субъект права", "Вид права", "Документы-основания", "Кадастровый номер", "Обременения", "Номер записи регистрации в ЕГРП", "Дата документа", "Файлы","Земельные участки"], this.oid, pDopData);
+				fillCard2(["Кадастровый паспорт", "Общая площадь", "Кадастровый номер", "Категория земель", "Разрешенное использование", "Кадастровая стоимость", "Обременения", "Лица в отношении которых применены обременения", "Дата постановки на ГКУ", "Файлы", "Земельные участки"], this.oid, pDopData);
+				pDop.hidden = false;
+				setCommsVisible(false);
+				getCommVisible = undefined;
+				
+				//showModal("iCard"+getCardVersionByOid(this.oid)+".htm", this.oid, oid);
+			}
+			if (oid==115) loadPanel(zu, pObjects, 2, 3, fclick);
+////////////include object properties
+			$(pObjects).append("<br>Состав имущества на объекте:<br>");
+			var fclick = function(){
+				pDopData.innerHTML = "";
+				$(pDopData).append("<h3>"+this.innerHTML+"</h3>");
+				var photo = objectlink.gOrm("gT2",[["Здания и сооружения", "Фото"],[]/*,[]*/,[],false, ["`Фото`"], "and `id_Здания и сооружения` = "+this.oid+" order by `id_Фото`"]);
+				if (photo && photo.length) {
+					$(pDopData).append("<button id='bImg'><img src="+photo[0][0]+" width='64'/></button>")
+					var bImg = gDom("bImg");
+					bImg.oid = this.oid
+					bImg.style.backgroundColor = "rgba(0,0,0,0)";
+					bImg.style.border = "0px";
+					bImg.style.cursor = "pointer";
+					bImg.onclick = function(){
+						showModal("cardPhoto.htm", this.oid, oid);
+					}
+				}
+
+				//fillCard2(["Коммуникации на объекте", "Электроснабжение","Отопление","ХВС","Канализация","Интернет","Вывоз КГМ и ТБО","Охрана", "Здания и сооружения"], this.oid, pDopData)
+				fillCard2(["Правоустанавливающие документы", "Объект права", "Адрес", "Субъект права", "Вид права", "Документы-основания", "Кадастровый номер", "Обременения", "Номер записи регистрации в ЕГРП", "Дата документа", "Файлы", "Здания и сооружения"], this.oid, pDopData);
+				fillCard2(["Технические данные", "Общая площадь", "Полезная площадь", "Площадь застройки", "Число этажей", "Высота этажа", "Коммуникации в здании", "Стены", "Перегородки", "Перекрытия", "Фундамент", "Год постройки", "Состояние", "Процент износа", "Литера", "Инвентарный номер", "Дата документа", "Файлы", "Здания и сооружения"], this.oid, pDopData);
+				fillCard2(["Материально ответственное лицо", "ФИО", "Телефон", "Email", "Файлы", "Здания и сооружения"], this.oid, pDopData);
+				pDop.hidden = false;
+				setCommsVisible(false);
+				getCommVisible = undefined;
+
+//				showModal("iCard"+getCardVersionByOid(this.oid)+".htm", this.oid, oid);
+			}
+			if (oid==115) loadPanel(zd, pObjects, 2, 3, fclick);
+
+			if (oids.indexOf(oid) == -1) {
+				polylines = [];				
+				oids.push(oid);
+////////////////polygons communications
+				if (oid==115) {
+				
+////////////////markers electro
+				var el = objectlink.gOrm("gT2",[["Электроснабжение", "Полигоны на карте", "Координаты на карте"],[[2,1]]/*,[]*/,[],false, ["`Координаты на карте`", "`id_Полигоны на карте`", "`id_Электроснабжение`"], "and `id_Электроснабжение` = "+electroId+" and `id_Координаты на карте` is not null order by `id_Полигоны на карте`,`id_Координаты на карте`"]);
+				var elLines = mapPaint(el, L.polyline, {color:"#ff9900", weight:1}, map);
+				if (elLines && elLines.length){
+					var elCoord = elLines[0].getLatLngs()[0];
+					var markerElectro = markerAddToMap(map, [elCoord.lat, elCoord.lng], "images/markerElectro.png")
+					var elCoord = elLines[0].getLatLngs()[6];
+					var elCounter1 = markerAddToMap(map, [elCoord.lat, elCoord.lng], "images/markerElectroCounter.png")
+					var elCoord = elLines[10].getLatLngs()[0];
+					var elCounter2 = markerAddToMap(map, [elCoord.lat+0.00015, elCoord.lng], "images/markerElectroCounter.png")
+					arrComm.push([markerElectro, elCounter1, elCounter2]);
+					arrLines.push(elLines);
+					setCommVisible(0, false);
+				}
+				
+////////////////markers teplo
+				var te = objectlink.gOrm("gT2",[["Отопление", "Полигоны на карте", "Координаты на карте"],[[2,1]]/*,[]*/,[],false, ["`Координаты на карте`", "`id_Полигоны на карте`", "`id_Отопление`"], "and `id_Отопление` = "+teploId+" and `id_Координаты на карте` is not null order by `id_Полигоны на карте`,`id_Координаты на карте`"]);
+				var teLines = mapPaint(te, L.polyline, {color:"#ffff00", weight:2}, map);
+				if (teLines && teLines.length){
+					var teCoord = teLines[0].getLatLngs()[0];
+					var markerTeplo = markerAddToMap(map, [teCoord.lat+0.00005, teCoord.lng], "images/moek.png")
+					var teCounter1 = markerAddToMap(map, [teCoord.lat-0.0001, teCoord.lng], "images/markerTeploCounter.png")
+					arrComm.push([markerTeplo, teCounter1]);
+					arrLines.push(teLines);
+					setCommVisible(1, false);
+				}
+
+////////////////markers water
+				var wa = objectlink.gOrm("gT2",[["ХВС", "Полигоны на карте", "Координаты на карте"],[[2,1]]/*,[]*/,[],false, ["`Координаты на карте`", "`id_Полигоны на карте`", "`id_ХВС`"], "and `id_ХВС` = "+waterId+" and `id_Координаты на карте` is not null order by `id_Полигоны на карте`,`id_Координаты на карте`"]);
+				var waLines = mapPaint(wa, L.polyline, {color:"#0000ff", weight:2}, map);
+				if (waLines && waLines.length){
+					var waCoord = waLines[0].getLatLngs()[0];
+					var markerWater = markerAddToMap(map, [waCoord.lat, waCoord.lng], "images/markerWater.png")
+					arrComm.push([markerWater]);
+					arrLines.push(waLines);
+					setCommVisible(2, false);
+				}
+
+////////////////markers kanalization
+				var ka = objectlink.gOrm("gT2",[["Канализация", "Полигоны на карте", "Координаты на карте"],[[2,1]]/*,[]*/,[],false, ["`Координаты на карте`", "`id_Полигоны на карте`", "`id_Канализация`"], "and `id_Канализация` = "+kanalId+" and `id_Координаты на карте` is not null order by `id_Полигоны на карте`,`id_Координаты на карте`"]);
+				var kaLines = mapPaint(ka, L.polyline, {color:"#552200", weight:2}, map);
+				if (kaLines && kaLines.length){
+					var kaCoord = kaLines[0].getLatLngs()[kaLines[0].getLatLngs().length-1];
+					var markerKanal = markerAddToMap(map, [kaCoord.lat, kaCoord.lng], "images/markerKanal.png")
+					arrComm.push([markerKanal]);
+					arrLines.push(kaLines);
+					setCommVisible(3, false);
+				}
+				
+				}
+				
+				map.on("zoomend", function(){
+					setCommVisible(getCommVisible, map.getZoom() >= 17)
+				})
+////////////////polygons objects				
+				if (oid==115) {
+					var zu = objectlink.gOrm("gT2",[["Объект", "Земельные участки", "Полигоны на карте", "Координаты на карте"],[[2,1],[3,2]]/*,[]*/,[],false, ["`Координаты на карте`", "`id_Полигоны на карте`", "`id_Земельные участки`"], "and `id_Объект` = "+oid+" and `id_Координаты на карте` is not null order by `id_Полигоны на карте`,`id_Координаты на карте`"]);
+					var zd = objectlink.gOrm("gT2",[["Объект", "Здания и сооружения", "Полигоны на карте", "Координаты на карте"],[[2,1],[3,2]]/*,[]*/,[],false, ["`Координаты на карте`", "`id_Полигоны на карте`", "`id_Здания и сооружения`"], "and `id_Объект` = "+oid+" and `id_Координаты на карте` is not null order by `id_Полигоны на карте`,`id_Координаты на карте`"]);
+					paintZu = mapPaint(zu, L.polygon, {color:"#00ff00", fillOpacity:0.1, weight:3}, map);
+					paintZd = mapPaint(zd, L.polygon, {color:"#00ff00", fillOpacity:0.1, weight:2}, map);
+					polylines = paintZu ? polylines.concat(paintZu) : polylines;
+					polylines = paintZd ? polylines.concat(paintZd) : polylines;
+				}
+////////////////events and paint photos of polylines			
+				for (var i=0; i < polylines.length; i++){
+					polylines[i].on('mouseover', function(e) {
+						this.setStyle({color : "#ff5555"});
+						var dom = gDom("but"+this.oid);
+						if (dom) dom.onmouseover();
+					});
+					
+					polylines[i].on('mouseout', function(e) {
+						this.setStyle({color : "#00ff00"});
+						var dom = gDom("but"+this.oid);
+						if (dom) dom.onmouseout();
+					});	
+
+					polylines[i].on('click', function(e) {
+						var dom = gDom("but"+this.oid);
+						if (dom) dom.onclick();
+					});
+
+					var dompol = gDom("but"+polylines[i].oid);
+					if (dompol) {
+						dompol.polylines = polylines[i];
+					}
+						
+////////////////////paint photos
+					if (false) {
+						var points = [];
+						for (var j=0; j < polylines[i].getLatLngs()[0].length; j++){
+							var lat = polylines[i].getLatLngs()[0][j].lat;
+							var lng = polylines[i].getLatLngs()[0][j].lng;
+							points.push([lat, lng]);
+						
+						}
+						var center = getCenterFromPoints(points);
+						
+						var _oid = polylines[i].oid;
+						var foto = objectlink.gOrm("gT2",[["`Здания и сооружения`", "`Фото`"],[]/*,[]*/,[],false, ["Фото"], "and `id_Здания и сооружения` = "+_oid]);
+
+						var ObjectIcon = L.Icon.extend({
+							options: {
+								iconSize:     [32, 32],
+								iconAnchor:   [16, 16]
+							}
+						});
+						var markers = L.layerGroup();
+
+						function click(that){
+							showModal("cardPhoto.htm", that.oid, oid);
+						}
+						
+						if (foto.length){
+							for (var j=0; j < 1; j++){
+								var fn = foto[j][0];
+							
+								var objectIcon = new ObjectIcon({iconUrl: fn});
+								var marker = L.marker(center, {icon:objectIcon})
+									.addTo(markers)
+								marker.oid = _oid;
+								marker.fn = fn;
+								marker
+									.on("click", function(){
+										click( this )
+									});
+								
+							}
+						}
+						markers.addTo(map);
+					}
+				}
+/////////////////////////////					
+			}
+			
+			if (oid && zd.length <= 1){
+				pDopData.innerHTML = "";
+				$(pDopData).append("<h3>Общая информация</h3>");
+
+				var objectId = objectlink.gOrm("gT2",[["Номер","Объект"],[],[],false,null,"and `id_Объект` ="+oid+" limit 1"]);
+				if (objectId && objectId.length) {
+					objectId = objectId[0][1];
+					var objectPath = getObjectsDir()+"/"+objectId+"/";
+					var imageFiles = [];
+					var otherFiles = [];
+					getHttp("scanDir.php?path="+objectPath, function(imagesJSON) {
+						var files = JSON.parse(imagesJSON);
+						var allFiles = splitObjectArray(files, {"images" : ["jpg", "png", "gif", "tif", "bmp"], "other" : []} );
+						imageFiles = allFiles.images.sort();
+						otherFiles = allFiles.other.sort();
+					}, false);
+
+					if (imageFiles && imageFiles.length) {
+						$(pDopData).append("<button style='border: 0px; cursor:pointer' id='bImg'><img src='"+domain+objectPath+url2cp1251(imageFiles[0])+"' width='64'/></button>")
+					}
+					
+					if (otherFiles.length) {
+						$(pDopData).append("<p>Файлы:</p>");
+						var divVal = pDopData.appendChild(cDom("DIV"));
+						for (var i=0; i < otherFiles.length; i++) {
+							var fileButton = getFileButtonHtml(objectPath+url2cp1251(otherFiles[i]));
+							$(divVal).append(fileButton);
+						}
+					}
+				}
+				
+				bImg.onclick = function(){
+					showModal("cardPhotoObject.htm", oid, oid);
+				}
+
+				pDop.hidden = false;
+				setCommsVisible(false);
+				getCommVisible = undefined;
+			} else {
+				pDopData.innerHTML = "";
+
+			}
+			
+/////////////arendator
+			arendatorMarker = markerAddToMap(map, [0, 0], "images/arendator.png", 64);
+			arendatorMarker2 = markerAddToMap(map, [0, 0], "images/arendator.png", 64);
+			arendatorMarkers = [arendatorMarker, arendatorMarker2];
+			
+			function getArendatorInf(polylines){
+				var tb = cDom("TABLE");
+				tb.style.width = "100%";
+				var tr = tb.appendChild(cDom("TR"));
+				var td = tr.appendChild(cDom("TD"));
+				td.innerHTML = "Арендаторы";
+				var td = tr.appendChild(cDom("TD"));
+				td.innerHTML = "Договор";
+				var td = tr.appendChild(cDom("TD"));
+				td.innerHTML = "Площадь";
+
+				var arendators = objectlink.gOrm("gT2", [
+					["Актуальные арендаторы", "Арендаторы", "Договоры аренды", "Участок аренды", "Занимаемая площадь", "Здания и сооружения", "Земельные участки"],
+					[[2,1],[3,2],[4,3],[5,3],[6,3]],[],1,
+					["`id_Арендаторы`", "`Арендаторы`", "`Договоры аренды`", "`Занимаемая площадь`", "`id_Здания и сооружения`", "`id_Земельные участки`"]]);
+					
+				for (var i=0; i < arendators.length; i++){
+					var id = arendators[i][0];
+					var arendator = arendators[i][1];
+					var dog = arendators[i][2] ? arendators[i][2].split(",").join("<br>") : "";
+					var square = arendators[i][3] ? arendators[i][3].split(",").join("<br>") : "";
+					var zd = arendators[i][4] ? arendators[i][4].split(",") : null;
+					var zu = arendators[i][5];
+					
+					var tr = tb.appendChild(cDom("TR"));
+					var td = tr.appendChild(cDom("TD"));
+					var but = td.appendChild(cDom("BUTTON"));
+					but.innerHTML = arendator;
+					but.id = "but"+id;
+					but.oid = id;	
+					but.style.width = "100%";
+					but.zd = zd;
+					but.zu = zu;
+					but.polylines = polylines;
+					
+					var td = tr.appendChild(cDom("TD"));
+					td.innerHTML = dog;
+					var td = tr.appendChild(cDom("TD"));
+					td.innerHTML = square;
+					
+					but.onclick = funcclick;
+				}
+				
+				function funcclick(){
+					var polylines = this.polylines;
+					for (var i=0; i < arendatorMarkers.length; i++){
+						arendatorMarkers[i].setOpacity(0);
+					}
+					var arr = this.zd || [];
+					arr.push(this.zu);
+					var zuNum = this.zu ? arr.length-1 : -1;
+					for (var m=0; m < arr.length; m++){
+						for (var i=0; i < polylines.length; i++){
+							var points = [];
+							if (polylines[i].oid == arr[m]){
+								for (var j=0; j < polylines[i].getLatLngs()[0].length; j++){
+									var lat = polylines[i].getLatLngs()[0][j].lat - (m == zuNum ? 0.00033 : 0);
+									var lng = polylines[i].getLatLngs()[0][j].lng;
+									points.push([lat, lng]);
+								
+								}
+								var center = getCenterFromPoints(points);
+								arendatorMarkers[m].setLatLng(center);
+								arendatorMarkers[m].setOpacity(1);
+							}
+						}
+					}
+					pDopData.innerHTML = "";
+
+					var fields = ["Арендаторы", "Договоры аренды", "Занимаемая площадь", "Здания и сооружения", "Земельные участки", "Стоимость аренды", "Файлы", "Деятельность", "Количество рабоников"]; 
+					var ar = objectlink.gOrm("gT2", [
+						["Арендаторы", "Договоры аренды", "Участок аренды", "Занимаемая площадь", "Здания и сооружения", "Земельные участки", "Стоимость аренды", "Файлы", "Деятельность", "Количество рабоников"],
+						[[2,1],[3,2],[4,2],[5,2],[6,1]],[],false,
+						decorateArr(fields, "`"),
+						" and `id_Арендаторы` = "+this.oid+" order by "+decorateArr(fields, "`id_", "`").join(",")
+						]);
+					var tb = pDopData.appendChild(cDom("TABLE"));
+					var div = cDom("DIV");
+					
+					var fill = function(cont, caption, value){
+						if (value) {
+							var tr = cont.appendChild(cDom("TR"));
+							var td = tr.appendChild(cDom("TD"));
+							td.innerHTML = caption;
+							td.style.borderBottom = "1px solid #333";
+							td.style.color = "#999";
+							var td = tr.appendChild(cDom("TD"));
+							td.innerHTML = value;
+							td.style.borderBottom = "1px solid #333";
+						}
+					}
+					
+					fill(tb, "Арендатор", ar[0][0]);
+					var dog_ = null;
+					var square_ = null;
+					var files = [];
+					var ind = 0;
+					for (var i=0; i < ar.length; i++){
+						var dog = ar[i][1];
+						if (dog_ != dog) {
+							$(tb).append("<tr style='height:10px'><td colspan=2></td></tr>");
+							fill(tb, "Договор", dog);
+							
+						}
+						dog_ = dog;
+						
+						var square = ar[i][2];
+						if (square_ != square){
+							$(tb).append("<tr><td colspan=2 style='border-bottom:1px solid #999'></td></tr>");
+							var zd = ar[i][3];
+							var zu = ar[i][4];
+							var sale = ar[i][5];
+							var doing = ar[i][7];
+							var workers = ar[i][8];
+							fill(tb, "Занимаемая площадь", square+" м2");
+							fill(tb, "Место аренды", zd || zu);
+							fill(tb, "Стоимость аренды", sale+" руб/мес");
+							fill(tb, "Деятельность", doing);
+							fill(tb, "Количество рабоников", workers);
+						}
+						square_ = square;
+						
+						var file = ar[i][6];
+						if (!~files.indexOf(file)){
+							$(div).append(getFileButtonHtml(file));
+							files.push(file);
+						}
+					}
+
+					var tr = tb.appendChild(cDom("TR"));
+					var td = tr.appendChild(cDom("TD"));
+					td.setAttribute("colspan", 2);
+					td.appendChild(div);
+
+					var tr = tb.appendChild(cDom("TR"));
+					var td = tr.appendChild(cDom("TD"));
+					td.setAttribute("colspan", 2);
+					td.innerHTML = "Счета:";
+
+					var fields = ["Счет","Счет продукт","Счет количество","Счет стоимость","Счет месяц","Счет год","Арендаторы","Объект"];
+					var orders = objectlink.gOrm("gT2", [fields,[],[],false,["`id_Счет`","`Счет продукт`","`Счет месяц`","Арендаторы"],
+						" and `id_Объект`="+oid+" and `id_Арендаторы` = "+this.oid+" order by `id_Счет месяц` desc, `id_Счет продукт`"
+					]);
+					var tr = tb.appendChild(cDom("TR"));
+					var td1 = tr.appendChild(cDom("TD"));
+					td1.style.width = "50%";
+					var td2 = tr.appendChild(cDom("TD"));
+					td2.valign = "top";
+					var orderclick = function(){
+						var fields = ["Счет","Счет продукт","Счет количество","Счет стоимость","Счет месяц","Счет год"];
+						td2.innerHTML = "";
+						fillCardEasy(fields, this.oid, td2);
+					}
+					
+					for (var i=0; i < orders.length; i++){
+						var but = td1.appendChild(cDom("BUTTON"));
+						td1.appendChild(cDom("BR"));
+						but.innerHTML = "счет "+orders[i][1]+" "+months[orders[i][2]-1];
+						but.style.width = "100%";
+						but.id = "but"+orders[i][0];
+						but.oid = orders[i][0];	
+						but.onclick = orderclick;
+
+					}
+					
+				}
+				
+				showInf(pDopData, tb);
+			}
+			
+			
+			function getReportsInf(){
+				var arr = ["Пустующий фонд по объекту", "Затраты и перевыставление"/*, "тестовый"*/];
+				pDopData.innerHTML = "";
+				var tb = pDopData.appendChild(cDom("TABLE"));
+				tb.style.width = "100%";
+				$(tb).append("<tr><td><h3>Отчеты</h3></td></tr>");
+				for (var i=0; i < arr.length; i++){
+					var tr = tb.appendChild(cDom("TR"));
+					var td = tr.appendChild(cDom("TD"));
+					var but = td.appendChild(cDom("BUTTON"));
+					but.innerHTML = arr[i];
+					but.id = "butReport"+i;
+					but.reportId = i;
+					but.onclick = funcclick;
+				}
+				
+				function funcclick(){
+					switch (this.reportId) {
+						case 0:
+							reportEmptyFond();
+						break
+						case 1:
+							reportCommunicationOrders();
+						break
+						case 2:
+							reportTest();
+						break
+					
+					}
+				}
+			}
+			
+			function reportEmptyFond(){
+				var sale = ["700", "500", "350"];
+				var fields = ["", "Здания и сооружения", "Полезная площадь", "Занимаемая площадь", "Свободная площадь", "Цена за м2", "Потенциальная прибыль"]; 
+				var arr = objectlink.gOrm("gT2", [
+					["Объект", "Фонд Аренды", "Здания и сооружения", "Технические данные", "Полезная площадь", "Участок аренды", "Занимаемая площадь"],
+					[[2,1],[3,2],[4,3],[5,2],[6,5]],[],false,
+					//decorateArr(fields, "`"),
+					["`id_Объект`","`Здания и сооружения`", "`Полезная площадь`", 
+					"ifnull(sum(`Занимаемая площадь`),0)", 
+					"ifnull(`Полезная площадь`-sum(`Занимаемая площадь`),`Полезная площадь`)", 
+					"case when `Здания и сооружения` like '%здани%' or `Здания и сооружения` like '%бытов%' then "+sale[0]+" else "+sale[1]+" end", 
+					"ifnull(`Полезная площадь`-sum(`Занимаемая площадь`),`Полезная площадь`) * case when `Здания и сооружения` like '%здани%' or `Здания и сооружения` like '%бытов%' then 700 else 500 end" 
+					],
+					" and `id_Объект` = "+oid+" group by `Здания и сооружения` order by `id_Здания и сооружения`"
+					]);
+				//pDopData.innerHTML = "";
+				var tb = getOrmObject({columns:fields, data:arr}, "all2domtable");
+				$.each($(tb).find("tr").find("td:first-child"), function(ind, value){
+					value.style.color = "#000";
+				})
+				$.each($(tb).find("tr").find("td"), function(ind, value){
+					value.style.borderBottom = "1px solid #333";
+				})
+				//$(pDopData).append(tb);
+				showModalHtml(tb, true);
+				tb.setAttribute("align", "left");
+				showModalHtml("<table><tr style='height:20px'><td></td></tr></table>");
+				
+				var fields = ["", "Итого", "Полезная площадь", "Занимаемая площадь", "Свободная площадь", "Цена за м2", "Потенциальная прибыль"]; 
+				var arr = objectlink.gOrm("gT2", [
+					["Объект", "Фонд Аренды", "Здания и сооружения", "Технические данные", "Полезная площадь", "Участок аренды", "Занимаемая площадь"],
+					[[2,1],[3,2],[4,3],[5,2],[6,5]],[],false,
+					//decorateArr(fields, "`"),
+					[" `id_Объект`,`Здания и сооружения`, sum(`Полезная площадь`), sum(busy), sum(`Полезная площадь`) - sum(busy), '000', sum(sale) from (select "+
+					"`id_Объект`","`Здания и сооружения`", "`Полезная площадь`", 
+					"ifnull(sum(`Занимаемая площадь`),0) busy", 
+					"ifnull(`Полезная площадь`-sum(`Занимаемая площадь`),`Полезная площадь`)", 
+					"case when `Здания и сооружения` like '%здани%' or `Здания и сооружения` like '%бытов%' then "+sale[0]+" else "+sale[1]+" end", 
+					"ifnull(`Полезная площадь`-sum(`Занимаемая площадь`),`Полезная площадь`) * case when `Здания и сооружения` like '%здани%' or `Здания и сооружения` like '%бытов%' then 700 else 500 end sale" 
+					],
+					" and `id_Объект` = "+oid+" group by `Здания и сооружения` order by `id_Здания и сооружения`"
+					+")x group by `id_Объект`"
+					]);
+				var tb = getOrmObject({columns:fields, data:arr}, "all2domtable");
+				$.each($(tb).find("tr:last-child").find("td"), function(ind, value){
+					value.style.color = ind < 2 || ind==5 ? "#000" : 
+					value.style.color = ind == 2 ? "#999" : 
+					value.style.color = ind == 3 ? "#00ff00" : 
+					value.style.color = ind == 6 ? "ff0000" : 
+					"#fff";
+				})
+				//$(pDopData).append(tb);
+				showModalHtml(tb);
+				tb.setAttribute("align", "left");
+				showModalHtml("<table><tr style='height:20px'><td></td></tr></table>");
+
+				var but = cDom("BUTTON");
+				var img = but.appendChild(cDom("IMG"));
+				img.src = "images/excel.png";
+				img.width = "32";
+				but.onclick = function(){
+					export2Excel($("#modalBody").get(0))
+				}
+				but.title = "Эспорт таблицы в Excel";
+				showModalHtml("<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+				showModalHtml(but);
+				
+				showModalHtml("<table width='100%'><tr><td align='left'><div id='graph'>Loading graph...</div></td></tr></table>");
+				var myData = new Array([Math.round(parseFloat(arr[0][3])/parseFloat(arr[0][2])*100)+"%", parseFloat(arr[0][3])], 
+				[100-Math.round(parseFloat(arr[0][3])/parseFloat(arr[0][2])*100)+"%", parseFloat(arr[0][4])]);
+				var colors = ['#00ff00', '#eee'];
+				var myChart = new JSChart('graph', 'pie');
+				myChart.setDataArray(myData);
+				myChart.colorizePie(colors);
+				myChart.setTitleColor('#857D7D');
+				myChart.setPieUnitsColor('#9B9B9B');
+				myChart.setPieValuesColor('#6A0000');
+				myChart.draw();
+				
+			}
+
+			function reportCommunicationOrders(){//multithread query and fill array whith locks
+				var lock = false;
+				var count = 0;
+				var vals = [];
+				var div = cDom("DIV");
+
+				div.innerHTML = "ОТЧЕТ ГОТОВИТЬСЯ. ОЖИДАЙТЕ ЗАВЕРШЕНИЯ...";
+				showModalHtml(div, true);
+
+				var products = ["электроэнергия", "мусор", "тепло", "интернет", "услуга техобслуживание оборудования КИПа", "Итого"];
+				var productsCount = products.length-1;
+				var monthCount = 5;
+				var mon = months.slice(0, monthCount).concat("Итого");
+				var rowCount = 3;
+
+				for (var i=0; i < productsCount+1; i++){//fill empty vals
+					vals[i] = [];
+					for (var j=0; j < monthCount+1; j++){
+						vals[i][j] = [0,0,0];
+					}
+				}
+				var stopCount = productsCount * 5 * 2;
+
+				var dt = new Date();
+				for (var i=0; i < productsCount; i++){//call async ajax functions
+					for (var j=0; j < monthCount; j++){
+						for (var k=0; k < rowCount-1; k++){
+							getSum(oid, j, 2016, i, products, k, stopCount, stopFunc);
+						}
+					}
+				}
+
+				function getSum(obj, month, year, product, products, isArendator, stopCount, stopFunc){//async ajax function
+					objectlink.gOrmA("gT2", [
+						["Счет","Счет продукт","Счет количество","Счет стоимость","Счет месяц","Счет год","Арендаторы","Объект"],
+						[],[],false,
+						["sum(`Счет стоимость`)"],
+						" and `id_Объект`="+obj+" and `Счет год`="+year+" and `Счет месяц`="+(month+1)+" and `Счет продукт`='"+products[product]+"' and `id_Арендаторы` is "+(isArendator ? "not" : "")+" null group by `id_Объект` "
+					], function(data){
+						var val = data && data.length ? data[0][0] : 0;
+						dispatcher(val, [product, month, isArendator], stopCount, stopFunc);//call disp function
+					});
+				}
+				
+				function dispatcher(val, params, stopCount, stopFunc){//disp function for reduce results
+					while (true){
+						if (!lock) {
+							lock = true;
+							try {
+								var p0 = params[0] || 0;
+								var p1 = params[1] || 0;
+								var p2 = params[2] || 0;
+								vals[p0][p1][p2] = parseFloat(val).toFixed(2);
+							} catch (e) {
+								console.log(params);
+								console.log(e);
+								lock = false;
+							} finally {
+								count++;
+								lock = false;
+								if (count >= stopCount) {
+									stopFunc();//call stop function
+								}
+								return;
+							}
+						}
+					}
+				}
+				
+				function stopFunc(){//stop function after finish all ajax async functions
+					count = 0;
+					lock = false;
+					
+					for (var i=0; i < productsCount; i++){//summary by month-product
+						for (var j=0; j < monthCount; j++){
+							vals[i][j][rowCount-1] = parseFloat(vals[i][j][0] - vals[i][j][1]).toFixed(2);
+						}
+					}
+					for (var i=0; i < productsCount; i++){//summary by year
+						for (var k=0; k < rowCount; k++){
+							var sum = [];
+							for (var j=0; j < monthCount; j++){
+								sum.push(vals[i][j][k]);
+							}
+							vals[i][monthCount][k] = sum.reduce(reducesum, 0);
+						}
+					}
+					for (var j=0; j < monthCount+1; j++){//summary by all
+						for (var k=0; k < rowCount; k++){
+							var sum = [];
+							for (var i=0; i < productsCount+1; i++){
+								sum.push(vals[i][j][k]);
+							}
+							vals[productsCount][j][k] = sum.reduce(reducesum, 0);
+							
+						}
+					}
+					///draw table with vals result
+					var div = cDom("DIV");
+					showModalHtml(div, true);
+					var tb = div.appendChild(cDom("TABLE"));
+					tb.style.width = "100%";
+					var tr = div.appendChild(cDom("TR"));
+					var td1 = div.appendChild(cDom("TD"));
+					var td2 = div.appendChild(cDom("TD"));
+					
+					for (var i=0; i < productsCount+1; i++){
+						td1.appendChild(cDom("BR"));
+						var cap = td1.appendChild(cDom("LABEL"));
+						cap.innerHTML = products[i];
+						var tb = td1.appendChild(cDom("TABLE"));
+						for (var k=-1; k < rowCount; k++){
+							var tr = tb.appendChild(cDom("TR"));
+							for (var j=0; j < monthCount+1; j++){
+								var td = tr.appendChild(cDom("TD"));
+								td.style.width = "100px";
+								td.innerHTML = k == -1 ? mon[j] : vals[i][j][k];
+								td.style.color = k == 1 ? "#9999ff" : k == 2 ? "#ff0000" : "#fff";
+								
+							}
+						}
+					}
+
+					///draw chart
+					td2.setAttribute("align", "center");
+					td2.setAttribute("valign", "middle");
+					$(td2).append("<table border=1><tr><td style='color:#fff'>Счета ГУОВ</td></tr><tr><td style='color:#9999ff'>Перевыставление</td></tr><tr><td style='color:#ff0000'>Убыток</td></tr></table>");
+					
+					var guov = vals[productsCount][monthCount][0];
+					var arend = vals[productsCount][monthCount][1];
+					var sum = vals[productsCount][monthCount][2];
+					
+					$(td2).append("<table width='100%'><tr><td align='center'><label>Итоги за год<label><div id='graph'>Loading graph...</div></td></tr></table>");
+					var myData = new Array([Math.round(parseFloat(arend)/parseFloat(guov)*100)+"%", parseFloat(arend)], 
+					[100-Math.round(parseFloat(sum)/parseFloat(guov)*100)+"%", parseFloat(sum)]);
+					var colors = ['#9999ff', '#ff0000'];
+					var myChart = new JSChart('graph', 'pie');
+					myChart.setDataArray(myData);
+					myChart.colorizePie(colors);
+					myChart.setTitleColor('#857D7D');
+					myChart.setPieUnitsColor('#9B9B9B');
+					myChart.setPieValuesColor('#6A0000');
+					myChart.draw();
+					//console.log(new Date() - dt);
+					//console.log(vals);
+					
+				}
+				
+				function reducesum(s, cur){return (parseFloat(s) + parseFloat(cur)).toFixed(2)};//resuce summary function
+				
+			}
+			
+			function redraw_recursive_test(){
+				var vals = [];
+
+				function redraw_recursive(p1, p2, p3){
+					if (p1 == 6) {
+						p1 = 1;
+						p2++;
+						showModalHtml("");
+
+						if (p2 == p3.length) {
+							last();
+							return;
+						}
+					}
+					setTimeout(redraw_recursive, 0, p1+1, p2, p3);
+				}
+				
+				showModalHtml("", true);
+				vals.push([[],[],[]]);
+				redraw_recursive(1, 0, []);
+
+				function last(){
+				}
+				
+			}
+
+			function reportTest(){
+				
+			}
+		}
+										
+////////////////marker add to map
+		function markerAddToMap(map, latlng, iconUrl, iconSize){
+			iconUrl = iconUrl || "images/marker00.png";
+			iconSize = iconSize || "32";
+			var icon = L.icon({
+				"iconUrl":iconUrl, 
+				"iconSize":[iconSize,iconSize], 
+				"iconAnchor":[Math.round(iconSize/2), Math.round(iconSize/2)]});
+			return L.marker(
+				latlng, 
+				{"icon":icon}
+			).addTo(map);
+		}
+				
+////////////////load to panel
+		function loadPanel(arr, container, idInd, valInd, funcClick, iconInd, cells2row, paramsInd){
+			var drow;
+			if (cells2row) {
+				drow = container.appendChild(cDom("DIV"));
+				drow.classList.add("div-table-row");
+				drow.classList.add("alpha");
+			}
+			for (var i=0; i < arr.length; i++){
+				var row = arr[i];
+				if (!cells2row) {
+					drow = container.appendChild(cDom("DIV"));
+					drow.classList.add("div-table-row");
+					drow.classList.add("alpha");
+				}
+				var dcol = drow.appendChild(cDom("DIV"));
+				if (!cells2row) { dcol.classList.add("div-table-col") } else { dcol.style.display = "inline" };
+				dcol.classList.add("alpha");
+				dcol.style.backgroundColor = "rgba(0,0,0,0.1)";
+				var but = dcol.appendChild(cDom("BUTTON"));
+				but.oid = row[idInd];
+				but.id = "but"+but.oid;
+				but.params = row[paramsInd];
+				but.row = row;
+				but.ind = i;
+				var iconUrl = row[iconInd];
+				but.innerHTML = iconUrl ? "<img src='"+iconUrl+"' style='width:32px'>" : row[valInd];
+				but.setAttribute("title", iconUrl ? row[valInd] : "");
+				but.style.width = cells2row ? "auto" : "100%";
+				but.classList.add("alpha");
+
+				but.onclick = funcClick;
+				but.onmouseover = function(){
+					this.style.backgroundColor = "rgba(0,255,0,0.3)";
+				}
+				but.onmouseout = function(){
+					this.style.backgroundColor = "rgba(0,0,0,0.3)";
+				}
+			}
+		}
+
+////////////////search objects or addres
+		var addressMarker = L.marker([0, 0]);
+		addressMarker = markerAddToMap(map, [0, 0], "images/marker21.png", 32);
+		var eSearch = document.getElementById('addressSearch');
+		eSearch.onkeydown = function(e){
+			if (e.which == 13) {
+				var objects = objectlink.gOrm("gT2",[["Объект","Адрес","Здания и сооружения","ИК","Ответственный","ТУ","Широта","Долгота"],[[3,0],[4,3],[5,3]]/*,[3,5]*/,[],false,["distinct `id_Объект`", "`Объект`", "`Широта`", "`Долгота`"],
+				"and (`Объект` like '%"+this.value+"%' or `Адрес` like '%"+this.value+"%' or `Здания и сооружения` like '%"+this.value+"%' or `ТУ` like '%"+this.value+"%' or `ИК` like '%"+this.value+"%' or `Ответственный` like '%"+this.value+"%')"]);
+				if (objects.length) {
+					pObjects.innerHTML = "";
+
+					fclick = function(){
+						location.href = mainHtmlPage+"#oid="+this.oid;
+						//hashchange(mapObjects);
+
+						
+					}
+					loadPanel(objects, pObjects, 0, 1, fclick);							
+				} else {
+					var coord = searchAddress(this.value);
+					addressMarker.setOpacity(0);
+					if (coord) {
+						addressMarker.setLatLng([coord[1], coord[0]]);
+						addressMarker.setOpacity(1);
+						map.setView([coord[1], coord[0]],18);
+					}
+				
+				}
+			}
+		}
+		
+
+	})
+</script>
+
+	</head>
+	<body>
+		<div id="myModal" class="modal">
+		  <div class="modal-content">
+			<div class="modal-header">
+			  <span class="close">&times;</span>
+			  <h3 id='modalTitle'></h2>
+			</div>
+			<div class="modal-body" id='modalBody'>
+			</div>
+			<div class="modal-footer" id='modalFooter'>
+			</div>
+		  </div>
+		</div>
+		
+		<table id="mainTable">
+		<tr>
+			<td align="center" valign="middle">
+				<div id="map" width="100%" height="100%"></div>
+			</td>
+		</tr>
+		</table>
+		
+		<div id='logo' style='position:absolute; left:1000px; top:10px; width:100px; z-index:100000; background-color:rgba(0,0,0,0.5); text-align:center; border-radius:5px'>
+			<img src='images/logo.png' width='64'/><br>
+			<label>База Данных Управления Эксплуатации Имущества</label>
+		</div>
+		
+		<div id='pSearch' style='position:absolute; left:10px; top:100px; width:350px; background-color:rgba(0,0,0,0.5); z-index:100000' class='div-table'>
+			<input type="text" id="addressSearch" autofocus placeholder="Поиск объектов или адреса" style="width:100%; color:#fff; border: 1px solid #999" class='alpha' />
+		</div>
+		<div id='pMain' style='position:absolute; height:600px; width:350px; left:10px; top:140px; background-color:rgba(0,0,0,0.5); z-index:100000; overflow-y:auto; overflow-x:hidden'>
+			<div id='pObjects' style='background-color:rgba(0,0,0,0); border:0px; width:100%' class='div-table'>
+			</div>
+		</div>
+		<div id='pDop' hidden style='position:absolute; height:300px; width:500px; left:1030px; top:540px; background-color:rgba(0,0,0,0.8); z-index:100000; overflow-y:auto; overflow-x:hidden'>
+			<div id='pDopData' style='background-color:rgba(0,0,0,0); border:0px; width:100%' class='div-table'>
+			</div>
+		</div>
+		<div style='position:absolute' hidden>
+			<table id='setup'>
+			<tr><td colspan=2><h3>Настройки</h3></td></tr>
+			<tr><td>Ширина информационного окна</td><td><input type='edit' id='eDopWidth' /></td></tr>
+			<tr><td>Высота информационного окна</td><td><input type='edit' id='eDopHeight'/></td></tr>
+			</table>
+		</div>
+		<div style='position:absolute; left:0px; top:0px; width:100%; height:100%; z-index:1100000; background-color:rgba(0,0,0,0.7)' hidden id='mainContainer'>
+			<div id='pLogin' style='position:fixed; left:500px; top:400px; background-color:rgba(0,0,0,0.5)'>
+				<form name="fLogin" onsubmit='return false;' id='fLogin'>
+				<table cellpadding="5" cellspacing="5">
+					<tr><td>Логин:</td><td> <input type='text' id='eUser' autofocus></td></tr>
+					<tr><td>Пароль:</td><td> <input type='password' id='ePassword' name='ePassword'></td></tr>
+					<tr><td colspan=2 align='center'><button id='bLogin'>Войти</button></td></tr>
+				</table>
+				</form>
+			</div>
+		</div>
+		
+	</body>
+</html>
