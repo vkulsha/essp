@@ -3,8 +3,8 @@ html, body, #mainTable {
 	overflow: hidden;
 	width: 100%;
 	margin: 0px;
-	color: #eee;
-	background-color: #000;
+	color: #000;
+	background-color: #fff;
 
 	scrollbar-base-color: rgba(50,50,50,0.3);
 	scrollbar-face-color: rgba(0,0,0,0.3);
@@ -41,25 +41,25 @@ html, body, table {
 .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 1000000; /* Sit on top */
+    z-index: 100; /* Sit on top */
     padding-top: 0px; /* Location of the box */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
 	height: 100%;
     overflow: hidden; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+    background-color: rgba(255,255,255,0.5);
 }
 
 /* Modal Content */
 .modal-content {
     position: relative;
-    background-color: #000;
+    background-color: #fff;
     margin: auto;
     padding: 0;
     width: 90%;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-	background-color: rgba(0,0,0,0.5)
+    background-color: rgba(255,255,255,0.5);
     animation-name: animatetop;
     animation-duration: 0.8s
 }
@@ -87,21 +87,21 @@ html, body, table {
 
 .modal-header {
     padding: 2px 2px;
-    background-color: #000;
+    background-color: #fff;
 }
 
 .modal-body {
 	padding: 2px 2px;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(200,200,255,0.5);
 }
 
 .modal-footer {
     padding: 2px 2px;
-    background-color: #000;
+    background-color: #fff;
 }
 
 .alpha {
-	background-color: rgba(0,0,0,0.2)
+	background-color: rgba(255,255,255,0.2)
 }
 
 .alpha:hover{
@@ -112,7 +112,6 @@ html, body, table {
 .div-table{
   display:table;         
   width:auto;         
-  /*background-color:#eee;*/
   border:1px solid  #666666;         
   border-spacing:5px;
 }
@@ -125,22 +124,16 @@ html, body, table {
   float:left;
   display:table-column;         
   width:100%;
-  /*background-color:#ccc;*/
 }
 
 button {
-	background-color: rgba(0,0,0,0.3);
+	background-color: rgba(240,240,240,0.3);
 	color : #eee;
 }
 
 button:hover{
-	background-color: rgba(255,0,0,0.3);
+	background-color: rgba(255,240,240,0.3);
 	color : #fff;
-	
-}
-
-table, div, tr, td {
-	background-color: rgba(0,0,0,0);
 	
 }
 

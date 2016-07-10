@@ -10,15 +10,13 @@ function getDbPrefix($arr, $host){
 };
 
 $arr = array(
-	"kulsha.ru" => "c5553_",
-	"explguov.ru" => "ih162624_",
-	"185.117.155.80" => "",
+	"essp.explguov.ru" => "ih162624_",
 	"localhost" => ""
 );
 
 $host = $_SERVER['SERVER_NAME'];
 $prefix = getDbPrefix($arr, $host);
-$conn = new DB("localhost",$prefix."expl",$prefix."root","Rekmif1983",0);;
+$conn = new DB("localhost",$prefix."essp",$prefix."root","Rekmif1983",0);;
 $explDb = $conn->db;
 $explDbType = $explDb->getAttribute(PDO::ATTR_DRIVER_NAME);
 $sql = new SQL($explDb);
