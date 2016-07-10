@@ -11,7 +11,7 @@
 		<script src="js/jscharts.js"></script></head>
 		<script src="js/GetSet.js"></script>
 		<script src="js/Filter.js"></script>
-		<script src="js/Columns.js"></script>
+		<script src="js/Column.js"></script>
 		<script src="js/JsTable.js"></script>
 
 <script>
@@ -133,7 +133,6 @@
 		var container = document.getElementsByClassName("jsTableContainer")[0];
 		var sel = objectlink.gOrm("gTq2",[["БС","Номер БС","Стандарты БС"],[],[],0]);
 		sel = "select `БС`,`Номер БС`,`Стандарты БС` from ("+sel+")x where 1=1 ";
-
 		var query = {
 			select:sel,
 			where:"",

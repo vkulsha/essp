@@ -1,6 +1,6 @@
 <?php
 class ObjectLink {
-	private $sql;
+	public $sql;
 	
     public function __construct(SQL &$sql){
 		$this->sql = $sql;
@@ -615,6 +615,43 @@ class ObjectLink {
 			")x where 1=1 and (o1 <> o2 or (o1 = o2 and t='parent')) ";
 			
 			return $this->sql->sT(["(".$query.")x", "*", $where, $order, ""]);
+			
+		} catch (Exception $e){
+			print($e);
+			return null;
+		}
+	}
+
+	public function sql($params){
+		try {
+			$table = $params[0];
+			$fields = isset($params[1]) ? $params[1] : "*";
+			$cond = isset($params[2]) ? $params[2] : "";
+			$order = isset($params[3]) ? $params[3] : "";
+			$limit = isset($params[4]) ? $params[4] : "";
+			
+			//$result = $this->sql->sql(["select $fields from $table where 1=1 $cond $order $limit"]);
+			$result = $this->sql->sql(["select * from $table"]);
+			
+			$columns = array();
+			$colsCount = $result->columnCount();
+			
+			$colNum = 0;
+			while ($colsCount > $colNum) 
+			{
+				$fieldName = $result->getColumnMeta($colNum)['name'];
+				$columns[] = $fieldName;
+				$colNum++;
+			}
+
+			$data = $result->fetchAll(PDO::FETCH_NUM);
+			
+			$jsonResult = array(
+				"columns" => $columns,
+				"data" => $data
+			);
+			
+			return $jsonResult;
 			
 		} catch (Exception $e){
 			print($e);

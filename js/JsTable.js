@@ -117,7 +117,7 @@ function JsTable (queryJson, opts, container) {
 				/*sqlAsync(that.querySelect.get() + that.queryWhere.get() + that.queryOrder.get() + " limit 0", function(json){
 					columns = JSON.parse(json).columns;
 				}, false);*/
-				columns = sql(that.querySelect.get() + that.queryWhere.get() + that.queryOrder.get() + " limit 0").columns;
+				columns = objectlink.gOrm("sql", ["("+that.querySelect.get() + that.queryWhere.get() + that.queryOrder.get() + " limit 0)x"]).columns;
 				if (columns) {
 					for (var i=0; i < columns.length; i++) {
 						result.push(new Column({
@@ -163,7 +163,9 @@ function JsTable (queryJson, opts, container) {
 			/*getQueryJson(that.queryAll.get(), function(json){
 				result = JSON.parse(json).data;
 			}, false);*/
-			result = sql(that.queryAll.get()).data;
+			//console.log(that.queryAll.get());
+			result = objectlink.gOrm("sql",["("+that.queryAll.get()+")x"]).data;
+			
 			return result;
 			
 		});
