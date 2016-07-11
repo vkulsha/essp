@@ -190,14 +190,14 @@
 				zak_vals = [zak_num, zak_d_start, zak_d_end, zak_stat];
 			} else zak_id = undefined;
 
-			if (zak_id) {
+			if (true || zak_id) {
 				switch (zak_type) {
 				case "ПИР":
-					var zak = objectlink.gOrm("gT2",[["Заказы ПИР","ПСЭЗ","ЭЗ1","Р1"],[],[],false,null,"and `id_Заказы ПИР` = "+zak_id]);
-					if (zak && zak.length) {
-						var psez = zak[0][2];
-						var ez1 = zak[0][4];
-						var r1 = zak[0][6];
+					var zak = objectlink.gOrm("gT2",[["Заказы ПИР","ПСЭЗ","ЭЗ1","Р1"],[],[],false,null,"and `id_Заказы ПИР` = '"+zak_id+"'"]);
+					//if (zak && zak.length) {
+						var psez = zak && zak.length ? zak[0][2] : "";
+						var ez1 = zak && zak.length ? zak[0][4] : "";
+						var r1 = zak && zak.length ? zak[0][6] : "";
 						
 						var f_psez = [
 						"ПСЭЗ",
@@ -210,7 +210,7 @@
 						"Передан во ФБУЗ",
 						"Готов",				
 						];
-						var psez = objectlink.gOrm("gT2",[f_psez,[],[],false,null,"and `id_ПСЭЗ` = "+psez]);
+						var psez = objectlink.gOrm("gT2",[f_psez,[],[],false,null,"and `id_ПСЭЗ` = '"+psez+"'"]);
 						
 						var f_ez1 = [
 						"ЭЗ1",
@@ -222,7 +222,7 @@
 						"Статус счета",
 						"Получение",
 						];
-						var ez1 = objectlink.gOrm("gT2",[f_ez1,[],[],false,null,"and `id_ЭЗ1` = "+ez1]);
+						var ez1 = objectlink.gOrm("gT2",[f_ez1,[],[],false,null,"and `id_ЭЗ1` = '"+ez1+"'"]);
 						
 						var f_r1 = [
 						"Р1",
@@ -232,20 +232,20 @@
 						"Получено из РПН",
 						"Передано в МТС",
 						];
-						var r1 = objectlink.gOrm("gT2",[f_r1,[],[],false,null,"and `id_Р1` = "+r1]);
+						var r1 = objectlink.gOrm("gT2",[f_r1,[],[],false,null,"and `id_Р1` = '"+r1+"'"]);
 						
 						fields = [f_psez, f_ez1, f_r1];
 						vals = [psez[0], ez1[0], r1[0]];
 						
-					}
+					//}
 						
 				break;
 				case "СМР":
-					var zak = objectlink.gOrm("gT2",[["Заказы СМР","Замеры","ЭЗ2","Р2"],[],[],false,null,"and `id_Заказы СМР` = "+zak_id]);
-					if (zak && zak.length) {
-						var zam = zak[0][2];
-						var ez2 = zak[0][4];
-						var r2 = zak[0][6];
+					var zak = objectlink.gOrm("gT2",[["Заказы СМР","Замеры","ЭЗ2","Р2"],[],[],false,null,"and `id_Заказы СМР` = '"+zak_id+"'"]);
+					//if (zak && zak.length) {
+						var zam = zak && zak.length ? zak[0][2] : "";
+						var ez2 = zak && zak.length ? zak[0][4] : "";
+						var r2 = zak && zak.length ? zak[0][6] : "";
 
 						var f_zam = [
 						"Замеры",
@@ -257,7 +257,7 @@
 						"Статус счета",
 						"Дата проведения",
 						];
-						var zam = objectlink.gOrm("gT2",[f_zam,[],[],false,null,"and `id_Замеры` = "+zam]);
+						var zam = objectlink.gOrm("gT2",[f_zam,[],[],false,null,"and `id_Замеры` = '"+zam+"'"]);
 						
 						var f_ez2 = [
 						"ЭЗ2",
@@ -266,7 +266,7 @@
 						"Входящий номер в ЦГиЭ",
 						"Получение",
 						];
-						var ez2 = objectlink.gOrm("gT2",[f_ez2,[],[],false,null,"and `id_ЭЗ2` = "+ez2]);
+						var ez2 = objectlink.gOrm("gT2",[f_ez2,[],[],false,null,"and `id_ЭЗ2` = '"+ez2+"'"]);
 						
 						var f_r2 = [
 						"Р2",
@@ -276,16 +276,18 @@
 						"Получено из РПН",
 						"Передано в МТС",
 						];
-						var r2 = objectlink.gOrm("gT2",[f_r2,[],[],false,null,"and `id_Р2` = "+r2]);
+						var r2 = objectlink.gOrm("gT2",[f_r2,[],[],false,null,"and `id_Р2` = '"+r2+"'"]);
 						
 						fields = [f_zam, f_ez2, f_r2];
 						vals = [zam[0], ez2[0], r2[0]];
 
-					}
+					//}
 					break;
 				}
 				
 				var tb = cDom("TABLE");
+				showModalHtml(tb, true);
+
 				tb.setAttribute("align", "center");
 				var tr_caption = tb.appendChild(cDom("TR"));
 				var tr_bs = tb.appendChild(cDom("TR"));
@@ -313,7 +315,7 @@
 					
 					var inp = td_.appendChild(cDom("INPUT"));
 					inp.setAttribute("type", "edit");
-					inp.value = zak_vals[i];
+					inp.value = zak_vals && zak_vals.length ? zak_vals[i] : "";
 				}
 				
 				///этапы заказа
@@ -336,7 +338,7 @@
 						if (i > 0) {
 							var inp = td_val.appendChild(cDom("INPUT"));
 							inp.setAttribute("type", "edit");
-							inp.value = vals[j][i*2+1];
+							inp.value = vals && vals.length && vals[j].length ? vals[j][i*2+1] : "";
 						} else {
 							td_name.style.fontWeight = "bold";
 							td_val.style.borderBottom = "1px solid #c4baa5";
@@ -364,8 +366,11 @@
 				var td_buttons = tr_buttons.appendChild(cDom("TD"));
 				var bSave = td_buttons.appendChild(cDom("BUTTON"));
 				bSave.innerHTML = "Сохранить";
+				bSave.onclick = function(){
+					modal.style.display = "none";
+
+				}
 				
-				showModalHtml(tb, true);
 			}
 		}
 		jsTable.cols2ButtonClick.set(bclick);
