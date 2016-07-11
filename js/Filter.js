@@ -59,7 +59,8 @@ function Filter(params) {
 		//var q = "select distinct `"+column.name+"` from ("+queryAll.split("order")[0]+" group by `"+column.name+"`)xxx order by `"+column.name+"`";
 		var q = "select distinct `"+column.name+"` from ("+queryAll.split("order")[0]+" )xxx order by `"+column.name+"`";
 		//var values = getOrm(q, "col2array")
-		var values = orm(q, "col2array")
+		//var values = orm(q, "col2array")
+		var values = getOrmObject(objectlink.gOrm("sql", ["(select distinct `"+column.name+"` from ("+queryAll.split("order")[0]+" )xxx order by `"+column.name+"`)x"]), "col2array");
 		if (values && values.length) {
 			result = values;
 		}

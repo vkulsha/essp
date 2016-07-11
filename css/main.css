@@ -4,17 +4,7 @@ html, body, #mainTable {
 	width: 100%;
 	margin: 0px;
 	color: #000;
-	background-color: #fff;
-
-	scrollbar-base-color: rgba(50,50,50,0.3);
-	scrollbar-face-color: rgba(0,0,0,0.3);
-	scrollbar-3dlight-color: rgba(50,50,50,0.3);
-	scrollbar-highlight-color: rgba(50,50,50,0.3);
-	scrollbar-track-color: rgba(0,0,0,0.3);
-	scrollbar-arrow-color: rgba(50,50,50,0.3);
-	scrollbar-dark-shadow-color: rgba(50,50,50,0.3);
-	scrollbar-shadow-color: rgba(50,50,50,0.3);
-	
+	background-color: #fffff0;
 }
 
 html, body, table {
@@ -22,6 +12,67 @@ html, body, table {
 	font-size: 12px;
 	
 }
+
+body, table, a {
+	font-family: Arial;
+	font-size: 12px;
+	color: #746a55;/*#b4aa95;*/
+}
+
+/*
+table {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+*/
+body {
+	background-color: #f8f1da;/*#f4f1ec;#fffff5*/
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 !important;	
+}
+
+.highlight, input, select {
+	background-color: #fffff0;
+	
+}
+
+input, select{
+	border: 1px solid #c4baa5;
+	
+}
+
+button {
+    background-color: #e4dac5;
+    -webkit-transition-duration: 0.25s; /* Safari */
+    transition-duration: 0.25s;
+	border: 1px solid #c4baa5;
+	border-radius: 3px;
+	box-shadow: 0 2px 2px 0 rgba(50,50,50,0.19);
+    color: #746a55;
+	cursor : pointer;
+}
+
+button:hover {
+    background-color: #f2ead4;
+    /*color: #c4baa5;*/
+}
+
+a {
+	text-decoration: none;
+	
+}
+
+img, .tMenu, #mainCaption {
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;	
+	
+}
+/*
 ::-webkit-scrollbar {
     width: 12px;
 }
@@ -37,6 +88,7 @@ html, body, table {
 ::-webkit-scrollbar-thumb {
     -webkit-box-shadow: inset 0 0 6px rgba(255,255,255,0.5); 
 }
+*/
 /* The Modal (background) */
 .modal {
     display: none; /* Hidden by default */
@@ -48,7 +100,7 @@ html, body, table {
     width: 100%; /* Full width */
 	height: 100%;
     overflow: hidden; /* Enable scroll if needed */
-    background-color: rgba(255,255,255,0.5);
+    background-color: rgba(255,255,255,0.8);
 }
 
 /* Modal Content */
@@ -59,7 +111,7 @@ html, body, table {
     padding: 0;
     width: 90%;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-    background-color: rgba(255,255,255,0.5);
+    /*background-color: rgba(255,255,255,0.5);*/
     animation-name: animatetop;
     animation-duration: 0.8s
 }
@@ -72,7 +124,7 @@ html, body, table {
 
 /* The Close Button */
 .close {
-    color: #fff;
+    color: #000;
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -92,7 +144,7 @@ html, body, table {
 
 .modal-body {
 	padding: 2px 2px;
-    background-color: rgba(200,200,255,0.5);
+    background-color: rgba(255,255,255,0.5);
 }
 
 .modal-footer {
@@ -125,15 +177,3 @@ html, body, table {
   display:table-column;         
   width:100%;
 }
-
-button {
-	background-color: rgba(240,240,240,0.3);
-	color : #eee;
-}
-
-button:hover{
-	background-color: rgba(255,240,240,0.3);
-	color : #fff;
-	
-}
-

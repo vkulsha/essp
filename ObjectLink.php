@@ -659,6 +659,33 @@ class ObjectLink {
 		}
 	}
 
+	public function gOCQ($params){
+		try {
+			$cid = $params[0];
+			return "select * from object where id in ( select o1 from link where o2 = $cid and o1 not in (select o1 from link where o2 = 1) ) ";
+			
+		} catch (Exception $e){
+			print($e);
+			return null;
+		}
+	}
+	
+	public function getObjectFromClass($params){
+		try {
+			$cid = $params[0];
+			$n = $params[1];
+			
+			$q = $this->gOCQ([$cid]);
+			$ret = $this->sql->sT(["(select id from ($q)x where 1=1 and n='$n')x","*"]);
+			
+			return $ret;
+			
+		} catch (Exception $e){
+			print($e);
+			return null;
+		}
+	}
+
 
 
 	

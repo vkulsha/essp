@@ -19,7 +19,9 @@ function JsTable (queryJson, opts, container) {
 		this.selectedCell = new GetSet("selecterCell", undefined);//val
 		this.cellClickFunc = new GetSet("cellClickFunc", opts && opts.cellClickFunc ? opts.cellClickFunc : undefined);//ref
 		this.cellDblClickFunc = new GetSet("cellDblClickFunc", opts && opts.cellDblClickFunc ? opts.cellDblClickFunc : undefined);//ref
-		
+		this.cols2Button = new GetSet("cols2Button", opts && opts.cols2Button ? opts.cols2Button : []);//ref
+		this.cols2ButtonClick = new GetSet("cols2ButtonClick", opts && opts.cols2ButtonClick ? opts.cols2ButtonClick : undefined);//ref
+
 		this.container = container;//ref
 		this.mainContainer = new GetSet("mainContainer", null, function(){//ref
 			var container = that.container;
@@ -423,6 +425,7 @@ function JsTable (queryJson, opts, container) {
 			var columns = that.columns.get();
 			var rowsColOpt = that.rowsColorOpts.get();
 			var isColorOpt = (JSON.stringify(rowsColOpt) != "{}");
+			var cols2Button = that.cols2Button.get();
 
 			if (!columns || !rows || !result) return result;
 ///cell click			
@@ -471,6 +474,9 @@ function JsTable (queryJson, opts, container) {
 					var cell = document.createElement("TD");
 					var div = document.createElement("DIV");
 					var inp = document.createElement("TEXTAREA");//
+					var isBut = cols2Button.indexOf(j) >= 0;//
+					var but = isBut ? document.createElement("BUTTON") : undefined;//
+					
 					cell.style.overflow = "hidden";
 					cell.style.width = columns[j]["width"];
 					cell.style.height = columns[j]["height"];
@@ -510,7 +516,13 @@ function JsTable (queryJson, opts, container) {
 
 					//div.innerHTML = rows[i][j];
 					div.appendChild(inp);//
-					cell.appendChild(div);
+					if (isBut)	{
+						but.innerHTML = inp.innerHTML || "+";
+						but.col = j;
+						but.row = i;
+						but.onclick = function(){that.cols2ButtonClick.get()(this)};
+					}
+					cell.appendChild(but || div);
 					row.appendChild(cell);
 				}
 				if (color) {
