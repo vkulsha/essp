@@ -180,13 +180,39 @@
 
 		function BsCard(id) {
 			var tb = cDom("TABLE");
-			var f_stand = ["Стандарты БС"];
-			var stand = objectlink.gOrm("gT2",[f_stand]);
-			var cb = tb.appendChild(cDom("SELECT"));
+
+			var tr = tb.appendChild(cDom("TR"));
+			var td = tr.appendChild(cDom("TD"));
+			td.innerHTML = "Номер БС";
+			var td = tr.appendChild(cDom("TD"));
+			var inp = td.appendChild(cDom("INPUT"));
+			inp.setAttribute("type", "text");
+
+			var f = ["Стандарты БС"];
+			var vals = objectlink.gOrm("gT2",[f]);
+			var tr = tb.appendChild(cDom("TR"));
+			var td = tr.appendChild(cDom("TD"));
+			td.innerHTML = "Стандарт БС";
+			var td = tr.appendChild(cDom("TD"));
+			var cb = td.appendChild(cDom("SELECT"));
+			fillSelectDom(cb, vals);
 			
-			var 
+			var tr = tb.appendChild(cDom("TR"));
+			var td = tr.appendChild(cDom("TD"));
+			td.innerHTML = "Адрес";
+			var td = tr.appendChild(cDom("TD"));
+			var inp = td.appendChild(cDom("INPUT"));
+			inp.setAttribute("type", "text");
+
+			var f = ["БС вид работ"];
+			var vals = objectlink.gOrm("gT2",[f]);
+			var tr = tb.appendChild(cDom("TR"));
+			var td = tr.appendChild(cDom("TD"));
+			td.innerHTML = "Вид работ";
+			var td = tr.appendChild(cDom("TD"));
+			var cb = td.appendChild(cDom("SELECT"));
+			fillSelectDom(cb, vals);
 			
-			fillSelectDom(cb, stand);
 			return tb;
 		
 		}
