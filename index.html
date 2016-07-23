@@ -162,9 +162,34 @@
 		but1 = document.createElement("BUTTON");
 		but1.innerHTML = "Добавить БС";
 		but1.onclick = function(){
-			pClassAdd.hidden = !pClassAdd.hidden;
+			showModalHtml(BsCard(), true);
 		}
 		addToTable(jsTable, but1);
+		
+		function fillSelectDom(dom, values) {
+			dom.appendChild(cDom("OPTION"));
+			for (var i=0; i < values.length; i++){
+				var opt = cDom("OPTION");
+				opt.innerHTML = values[i][1];
+				opt.value = values[i][0];
+				opt.oid = values[i][0];
+				opt.id = "opt"+values[i][0];
+				dom.appendChild(opt);
+			}
+		}
+
+		function BsCard(id) {
+			var tb = cDom("TABLE");
+			var f_stand = ["Стандарты БС"];
+			var stand = objectlink.gOrm("gT2",[f_stand]);
+			var cb = tb.appendChild(cDom("SELECT"));
+			
+			var 
+			
+			fillSelectDom(cb, stand);
+			return tb;
+		
+		}
 		
 		var rows = jsTable.rows.get();
 		var cellDblClickFunc = function(){
