@@ -40,6 +40,7 @@ class ObjectLink {
 	}
 
 	public function cL($params){//link objects
+		$ret = 0;
 		try {
 			$o1 = $params[0];
 			$o2 = $params[1];

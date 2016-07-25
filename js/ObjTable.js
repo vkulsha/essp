@@ -8,7 +8,7 @@
 //call : call procedure once time
 //proc : procedure - function without return value
 
-function JsTable (queryJson, opts, container) {
+function ObjTable (queryJson, opts, container) {
 		var that = this;//ref
 		this.filter = new GetSet("filter", null);//val
 		this.tableWidth = new GetSet("tableWidth", opts && opts.tableWidth ? opts.tableWidth : 1200);//val
@@ -25,7 +25,7 @@ function JsTable (queryJson, opts, container) {
 		this.refreshTable = new GetSet("refreshTable", null, function(){//obj
 			that.refreshTableMarker.set(""+(new Date()));
 		});
-
+		
 		this.container = container;//ref
 		this.mainContainer = new GetSet("mainContainer", null, function(){//ref
 			var container = that.container;
@@ -78,7 +78,7 @@ function JsTable (queryJson, opts, container) {
 					var cond = conds[i];
 					var field = cond.field.toLowerCase();
 					
-					if (col == field) {
+					if (col.toLowerCase() == field) {
 						succ = cmpOperator(cond.compareType, val, cond.value);
 					} else {
 						succ = false;
@@ -119,21 +119,16 @@ function JsTable (queryJson, opts, container) {
 			
 			if (colsOpts) {
 				result = colsOpts;
+				for (var i=0; i < result.length; i++) {
+					if (!result[i].caption) result[i].caption = result[i].name;
+				}
 			} else {
-				/*sqlAsync(that.querySelect.get() + that.queryWhere.get() + that.queryOrder.get() + " limit 0", function(json){
-					columns = JSON.parse(json).columns;
-				}, false);*/
-				columns = objectlink.gOrm("sql", ["("+that.querySelect.get() + that.queryWhere.get() + that.queryOrder.get() + " limit 0)x"]).columns;
+				columns = ["Класс"];
 				if (columns) {
 					for (var i=0; i < columns.length; i++) {
-						result.push(new Column({
+						result.push(new ObjColumn({
 								"id" : i, 
 								"name" : columns[i], 
-								"caption" : columns[i],
-								"width" : 100, 
-								"height" : "100%", 
-								"visible" : true,
-								"class" : ""
 						}));
 					}
 				}
@@ -165,12 +160,18 @@ function JsTable (queryJson, opts, container) {
 //jsBody
 		this.jsBody = new GetSet("jsBody", null, function(){//obj
 			var result = [];
-			if (!that.queryAll.get()) return result;
-			/*getQueryJson(that.queryAll.get(), function(json){
-				result = JSON.parse(json).data;
-			}, false);*/
-			//console.log(that.queryAll.get());
-			result = objectlink.gOrm("sql",["("+that.queryAll.get()+")x"]).data;
+			var columns = that.columns.get();
+			if (!that.queryAll.get() || !columns) return result;
+			var cols = [];
+			var pars = [];
+			var objectLinkMethod = "gT2";
+
+			for (var i=0; i < columns.length; i++) {
+				cols.push(columns[i].name);
+				if (columns[i].parentCol != undefined) { pars.push([i, parseInt(columns[i].parentCol)]) }
+				objectLinkMethod = columns[i].objectLinkMethod ? columns[i].objectLinkMethod : objectLinkMethod;
+			}
+			result = objectlink.gOrm(objectLinkMethod,[cols, pars, [], false, decorateArr(cols, "`")]);
 			
 			return result;
 			
@@ -446,18 +447,22 @@ function JsTable (queryJson, opts, container) {
 			
 			var cellOnFocus = function(e){
 				//this.classList.add("jsTableSelectedCell");
+				if (isColorOpt) return;
 				that.selectedCell.set(this);
 				this.style.backgroundColor = rgb(255, 228, 138);
 				$(this.domRow).find("td").each(function(){
 					//this.classList.add("jsTableSelectedRow");
-					this.style.backgroundColor = rgb(255, 247, 217)
+					this.style.backgroundColor = rgb(255, 247, 217);
+					
 				});
 				//this.removeAttribute("readonly");
 
 			}
 			
 			var cellOnBlur = function(e){
-				color = "inherit";
+				color = "inherit"
+				if (isColorOpt) return;
+				
 				this.style.backgroundColor = color;
 				//this.classList.remove("jsTableSelectedCell");
 				$(this.domRow).find("td").each(function(){
@@ -588,7 +593,7 @@ function JsTable (queryJson, opts, container) {
 		
 ///filter
 		this.currentColumn = new GetSet("currentColumn", that.columns.get()[0]);//val
-		this.filter.set(new Filter({"jsTable":that}));//set
+		this.filter.set(new ObjFilter({"jsTable":that}));//set
 		
 		this.createFilter = new GetSet("createFilter", null, function(){//call
 			var filter = that.filter.get();
@@ -1064,7 +1069,7 @@ function cmpOperator(t, val, pat){
 		( t == "!=" && val != pat ) ||
 		( t == "in" && ~JSON.parse(pat).indexOf(val) ) ||
 		( t == "not in" && JSON.parse(pat).indexOf(val) == -1 );
-	
+
 	return result;
 };
 

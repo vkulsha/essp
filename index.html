@@ -11,13 +11,14 @@
 		<script src="js/objectlink.js"></script></head>
 		<script src="js/jscharts.js"></script></head>
 		<script src="js/GetSet.js"></script>
-		<script src="js/Filter.js"></script>
-		<script src="js/Column.js"></script>
-		<script src="js/JsTable.js"></script>
+		<script src="js/ObjFilter.js"></script>
+		<script src="js/ObjColumn.js"></script>
+		<script src="js/ObjTable.js"></script>
 
 <script>
 ////////////policy
-	var classes_ = objectlink.gOrm("gAnd",[[1],"n,id"]);
+	//var classes_ = objectlink.gOrm("gAnd",[[1],"n,id"]);
+	var classes_ = objectlink.gOrm("gT2",[["Класс"],[],[0],false,["Класс","id_Класс"]]);
 	var classes = hash4arr(classes_);
 	var oids = [];
 	var key = $_GET("key", "#", location.hash);
@@ -75,14 +76,6 @@
 			pDop.style.top = windowHeight()-parseInt(pDop.style.height)-5+"px";
 		};
 		var modalCont = gDom("modalCont");
-		
-		/*var logo = gDom("logo");
-		logo.style.left = windowWidth()-parseInt(logo.style.width)-50+"px";
-		logo.onclick = function(){
-			eDopWidth.value=pDop.style.width;
-			eDopHeight.value=pDop.style.height;
-			showModalHtml(setup, true);
-		}*/
 		
 ////////////////modal
 		var modal = document.getElementById('myModal');
@@ -158,18 +151,27 @@
 			where:"",
 			order:""
 		};
-		var colors;
-		var colsOpts = [
-			new Column({'id' : 0, 'name' : 'id_БС', 'caption' : 'ID', 'width' : 40, 'visible' : true, 'class' : undefined}),
-			new Column({'id' : 1, 'name' : 'БС', 'caption' : 'БС', 'width' : 70, 'visible' : true, 'class' : undefined}),
-			new Column({'id' : 2, 'name' : 'БС адрес', 'caption' : 'Адрес', 'width' : 300, 'visible' : true, 'class' : undefined}),
-			new Column({'id' : 3, 'name' : 'БС вид работ', 'caption' : 'Вид работ', 'width' : 100, 'visible' : true, 'class' : undefined}),
-			new Column({'id' : 4, 'name' : 'Заказы ПИР', 'caption' : 'ПИР (Р1)', 'width' : 120, 'visible' : true, 'class' : undefined}),
-			new Column({'id' : 5, 'name' : 'Заказы СМР', 'caption' : 'СМР (Р2)', 'width' : 120, 'visible' : true, 'class' : undefined}),
+		var colors = [
+			new RowColorMarker({
+				color: "#ffeeee",
+				conditions: [new FieldCondition({field: "Заказы ПИР", compareType: "!=", value: "", condType: "and"})]
+			}),
+			new RowColorMarker({
+				color: "#eeffee",
+				conditions: [new FieldCondition({field: "Заказы СМР", compareType: "!=", value: "", condType: "and"})]
+			}),
 		];
 		var tbHeight = windowHeight() * (380/699);
-		var opts = {tableWidth:1200, tableHeight:tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [4,5]};
-		var jsTable = new JsTable(query, opts, container);
+
+		var colsOpts = [
+			new ObjColumn({'id' : 0,  'name' : 'БС', 'width' : 70}),
+			new ObjColumn({'id' : 1,  'name' : 'БС адрес', 'width' : 300}),
+			new ObjColumn({'id' : 2,  'name' : 'БС вид работ', 'width' : 100}),
+			new ObjColumn({'id' : 3,  'name' : 'Заказы ПИР', 'width' : 120}),
+			new ObjColumn({'id' : 4,  'name' : 'Заказы СМР', 'width' : 120}),
+		];
+		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,4]};
+		var jsTable = new ObjTable(query, opts, container);
 
 		but1 = document.createElement("BUTTON");
 		but1.innerHTML = "Добавить БС";
@@ -177,6 +179,12 @@
 			showModalHtml(getCard(["БС","БС номер","Стандарты БС","БС адрес","БС вид работ"],["hidden","edit","checkbox","edit","combobox"],[1,2],null,null, true), true);
 		}
 		addToTable(jsTable, but1);
+		
+		function modalClose(refresh) {
+			modal.style.display = "none";
+			jsTable.refreshTable.get();
+		
+		}
 		
 		function getCard(fields, fieldsT, parentValLinked, mainObjId, parentObjectId, bSaveVisible) {
 			var tb = cDom("TABLE");
@@ -231,7 +239,7 @@
 				but.innerHTML = "Сохранить";
 				but.onclick = function(){
 					tb.funcSave();
-					modal.style.display = "none";
+					modalClose(true);
 				};
 			}
 			
@@ -289,7 +297,7 @@
 				
 				ret = oid;
 				
-				if (pid && JSON.stringify(pid) != "[]" && oid) {
+				if (pid && oid) {
 					objectlink.gOrm("cL", [oid, pid]);
 				}
 				
@@ -308,12 +316,14 @@
 			tr.elem = [];
 			tr.fn = fn;
 			tr.ft = ft;
+
+			var td = tr.appendChild(cDom("TD"));
+			td.style.borderBottom = "1px solid #c4baa5";
+			td.innerHTML = fn;
+			
 			switch (ft) {
 				case "hidden":
-					var td = tr.appendChild(cDom("TD"));
-					td.style.borderBottom = "1px solid #c4baa5";
 					td.style.fontWeight = "bold";
-					td.innerHTML = fn;
 					var td = tr.appendChild(cDom("TD"));
 					td.style.borderBottom = "1px solid #c4baa5";
 					var inp = td.appendChild(cDom("INPUT"));
@@ -326,9 +336,6 @@
 				case "edit":
 					var td = tr.appendChild(cDom("TD"));
 					td.style.borderBottom = "1px solid #c4baa5";
-					td.innerHTML = fn;
-					var td = tr.appendChild(cDom("TD"));
-					td.style.borderBottom = "1px solid #c4baa5";
 					var inp = td.appendChild(cDom("INPUT"));
 					inp.setAttribute("type", "text");
 					inp.value = def;
@@ -338,9 +345,6 @@
 				break;
 				case "checkbox":
 					var vals = objectlink.gOrm("gT2",[[fn]]);
-					var td = tr.appendChild(cDom("TD"));
-					td.style.borderBottom = "1px solid #c4baa5";
-					td.innerHTML = fn;
 					var td = tr.appendChild(cDom("TD"));
 					td.style.borderBottom = "1px solid #c4baa5";
 					var tb_ = td.appendChild(cDom("TABLE"));
@@ -365,9 +369,6 @@
 					var vals = objectlink.gOrm("gT2",[[fn]]);
 					var td = tr.appendChild(cDom("TD"));
 					td.style.borderBottom = "1px solid #c4baa5";
-					td.innerHTML = fn;
-					var td = tr.appendChild(cDom("TD"));
-					td.style.borderBottom = "1px solid #c4baa5";
 					var cb = td.appendChild(cDom("SELECT"));
 					tr.elem.push(cb);
 					fillSelectDom(cb, vals);
@@ -378,9 +379,6 @@
 					cb.style.width = "100%";
 				break;
 				case "memo":
-					var td = tr.appendChild(cDom("TD"));
-					td.style.borderBottom = "1px solid #c4baa5";
-					td.innerHTML = fn;
 					var td = tr.appendChild(cDom("TD"));
 					td.style.borderBottom = "1px solid #c4baa5";
 					var inp = td.appendChild(cDom("TEXTAREA"));
@@ -400,14 +398,13 @@
 		jsTable.cellDblClickFunc.set(cellDblClickFunc);
 		
 		var bclick = function(that){
-			var zak_type = that.col == 4 ? "ПИР" : "СМР";
-			var bsid = jsTable.rows.get()[that.row][0];
-
-			var zak = objectlink.gOrm("gT2",[["Заказы "+zak_type,"БС"],[],[],false,
+			var zak_type = that.col == 3 ? "ПИР" : "СМР";
+			var bsid = objectlink.gOrm("getObjectFromClass", [classes["БС"], jsTable.rows.get()[that.row][0]])[0][0];
+			var zak_id = objectlink.gOrm("gT2",[["Заказы "+zak_type,"БС"],[],[],false,
 				null,"and `id_БС` = "+bsid," order by `id_Заказы "+zak_type+"` desc limit 1"]);
-			if (zak && zak.length) {
-				zak = zak[0][0];
-			} else zak = undefined;
+			if (zak_id && zak_id.length) {
+				zak_id = zak_id[0][0];
+			} else zak_id = undefined;
 			
 			var tb = cDom("TABLE");
 			tb.setAttribute("align", "center");
@@ -421,7 +418,7 @@
 			var cards = [];
 			var card1 = getCard(
 			["Заказы "+zak_type,"Заказы номер","Заказы дата подписания","Заказы дата закрытия","Заказы статус","Примечание"],
-			["hidden","edit","edit","edit","combobox","memo"],[1],zak,bsid);
+			["hidden","edit","edit","edit","combobox","memo"],[1],zak_id,bsid);
 			td_zak.appendChild(card1);
 			cards.push(card1);
 
@@ -433,46 +430,46 @@
 			
 			switch (zak_type) {
 				case "ПИР":
-					var zak = objectlink.gOrm("gT2",[["Заказы ПИР","ПСЭЗ","ЭЗ1","Р1"],[],[],false,null,"and `id_Заказы ПИР` = '"+zak+"'"]);
+					var zak = objectlink.gOrm("gT2",[["Заказы ПИР","ПСЭЗ","ЭЗ1","Р1"],[],[],false,null,"and `id_Заказы ПИР` = '"+zak_id+"'"]);
 					var psez = zak && zak.length ? zak[0][2] : "";
 					var ez1 = zak && zak.length ? zak[0][4] : "";
 					var r1 = zak && zak.length ? zak[0][6] : "";
 
 					var f = ["ПСЭЗ","Взят в работу","Запрос информации у стороннего оператора","Получение ответа от стороннего оператора",
 						"Выполнен","Передан в МТС на подписание","Получен из МТС подписанный","Передан во ФБУЗ","Готов"];
-					var card2 = getCard(f, ["hidden","edit","edit","edit","edit","edit","edit","edit","edit"], [1], psez, zak);
+					var card2 = getCard(f, ["hidden","edit","edit","edit","edit","edit","edit","edit","edit"], [1], psez, zak_id);
 					td1.appendChild(card2);
 					cards.push(card2);
 
 					var f = ["ЭЗ1","Заявление подписано в МТС","Дата подачи в ЦГиЭ","Входящий номер в ЦГиЭ","Номер счета","Сумма","Статус счета","Получение"];
-					var card3 = getCard(f, ["hidden","edit","edit","edit","edit","edit","combobox","edit"], [1], ez1, zak);
+					var card3 = getCard(f, ["hidden","edit","edit","edit","edit","edit","combobox","edit"], [1], ez1, zak_id);
 					td2.appendChild(card3);
 					cards.push(card3);
 
 					var f = ["Р1","Заявление РПН подписано МТС","Номер заявления на размещение в РПН","Дата подачи в РПН","Получено из РПН","Передано в МТС"];
-					var card4 = getCard(f, ["hidden","edit","edit","edit","edit","edit"], [1], r1, zak);
+					var card4 = getCard(f, ["hidden","edit","edit","edit","edit","edit"], [1], r1, zak_id);
 					td3.appendChild(card4);
 					cards.push(card4);
 				break;
 				case "СМР":
-					var zak = objectlink.gOrm("gT2",[["Заказы СМР","Замеры","ЭЗ2","Р2"],[],[],false,null,"and `id_Заказы СМР` = '"+zak+"'"]);
+					var zak = objectlink.gOrm("gT2",[["Заказы СМР","Замеры","ЭЗ2","Р2"],[],[],false,null,"and `id_Заказы СМР` = '"+zak_id+"'"]);
 					var zam = zak && zak.length ? zak[0][2] : "";
 					var ez2 = zak && zak.length ? zak[0][4] : "";
 					var r2 = zak && zak.length ? zak[0][6] : "";
 
 					var f = ["Замеры","Заявление подписано в МТС","Подано на замеры в ЦГиЭ","Входящий номер ФБУЗ заявления","Номер счета","Сумма",
 						"Статус счета","Дата проведения"];
-					var card2 = getCard(f, ["hidden","edit","edit","edit","edit","edit","combobox","edit"], [1], zam, zak);
+					var card2 = getCard(f, ["hidden","edit","edit","edit","edit","edit","combobox","edit"], [1], zam, zak_id);
 					td1.appendChild(card2);
 					cards.push(card2);
 
 					var f = ["ЭЗ2","Заявление подписано в МТС","Дата подачи в ЦГиЭ","Входящий номер в ЦГиЭ","Получение"];
-					var card3 = getCard(f, ["hidden","edit","edit","edit","edit"], [1], ez2, zak);
+					var card3 = getCard(f, ["hidden","edit","edit","edit","edit"], [1], ez2, zak_id);
 					td2.appendChild(card3);
 					cards.push(card3);
 
 					var f = ["Р2","Заявление РПН подписано МТС","Дата подачи в РПН","Номер заявления на размещение в РПН","Получено из РПН","Передано в МТС"];
-					var card4 = getCard(f, ["hidden","edit","edit","edit","edit","edit"], [1], r2, zak);
+					var card4 = getCard(f, ["hidden","edit","edit","edit","edit","edit"], [1], r2, zak_id);
 					td3.appendChild(card4);
 					cards.push(card4);
 				break;
@@ -492,10 +489,11 @@
 					var card = cards[i];
 					card.funcSave();
 				}
+
 				for (var i=1; i < cards.length; i++) {
 					objectlink.gOrm("cL", [cards[i].mainObjId, cards[0].mainObjId]);
 				}
-				modal.style.display = "none";
+				modalClose(true);
 			};
 			
 			
@@ -503,210 +501,6 @@
 			
 		}
 		
-/*		
-		var bclick_ = function(that){
-			var zak_type = that.col == 4 ? "ПИР" : "СМР";
-			var bsid = jsTable.rows.get()[that.row][0];
-			
-			var f_zak = ["Заказы номер","Заказы дата подписания","Заказы дата закрытия","Заказы статус","Примечание"];
-			var zak = objectlink.gOrm("gT2",[["Заказы "+zak_type,"БС"].concat(f_zak),[],[],false,
-				null,"and `id_БС` = "+bsid," order by `id_Заказы "+zak_type+"` desc limit 1"]);
-			var zak_num, zak_d_start, zak_d_end, zak_stat, zak_id, fields, vals, zak_vals;
-				
-			if (zak && zak.length) {
-				zak_num = zak[0][5];
-				zak_d_start = zak[0][7];
-				zak_d_end = zak[0][9];
-				zak_stat = zak[0][11];
-				zak_context = zak[0][13];
-				zak_id = zak[0][0];
-				zak_vals = [zak_num, zak_d_start, zak_d_end, zak_stat];
-			} else zak_id = undefined;
-
-			if (true || zak_id) {
-				switch (zak_type) {
-				case "ПИР":
-					var zak = objectlink.gOrm("gT2",[["Заказы ПИР","ПСЭЗ","ЭЗ1","Р1"],[],[],false,null,"and `id_Заказы ПИР` = '"+zak_id+"'"]);
-					//if (zak && zak.length) {
-						var psez = zak && zak.length ? zak[0][2] : "";
-						var ez1 = zak && zak.length ? zak[0][4] : "";
-						var r1 = zak && zak.length ? zak[0][6] : "";
-						
-						var f_psez = [
-						"ПСЭЗ",
-						"Взят в работу",
-						"Запрос информации у стороннего оператора",
-						"Получение ответа от стороннего оператора",
-						"Выполнен",
-						"Передан в МТС на подписание",
-						"Получен из МТС подписанный",
-						"Передан во ФБУЗ",
-						"Готов",				
-						];
-						var psez = objectlink.gOrm("gT2",[f_psez,[],[],false,null,"and `id_ПСЭЗ` = '"+psez+"'"]);
-						
-						var f_ez1 = [
-						"ЭЗ1",
-						"Заявление подписано в МТС",
-						"Дата подачи в ЦГиЭ",
-						"Входящий номер в ЦГиЭ",
-						"Номер счета",
-						"Сумма",
-						"Статус счета",
-						"Получение",
-						];
-						var ez1 = objectlink.gOrm("gT2",[f_ez1,[],[],false,null,"and `id_ЭЗ1` = '"+ez1+"'"]);
-						
-						var f_r1 = [
-						"Р1",
-						"Заявление РПН подписано МТС",
-						"Номер заявления на размещение в РПН",
-						"Дата подачи в РПН",
-						"Получено из РПН",
-						"Передано в МТС",
-						];
-						var r1 = objectlink.gOrm("gT2",[f_r1,[],[],false,null,"and `id_Р1` = '"+r1+"'"]);
-						
-						fields = [f_psez, f_ez1, f_r1];
-						vals = [psez[0], ez1[0], r1[0]];
-						
-					//}
-						
-				break;
-				case "СМР":
-					var zak = objectlink.gOrm("gT2",[["Заказы СМР","Замеры","ЭЗ2","Р2"],[],[],false,null,"and `id_Заказы СМР` = '"+zak_id+"'"]);
-					//if (zak && zak.length) {
-						var zam = zak && zak.length ? zak[0][2] : "";
-						var ez2 = zak && zak.length ? zak[0][4] : "";
-						var r2 = zak && zak.length ? zak[0][6] : "";
-
-						var f_zam = [
-						"Замеры",
-						"Заявление подписано в МТС",
-						"Подано на замеры в ЦГиЭ",
-						"Входящий номер ФБУЗ заявления",
-						"Номер счета",
-						"Сумма",
-						"Статус счета",
-						"Дата проведения",
-						];
-						var zam = objectlink.gOrm("gT2",[f_zam,[],[],false,null,"and `id_Замеры` = '"+zam+"'"]);
-						
-						var f_ez2 = [
-						"ЭЗ2",
-						"Заявление подписано в МТС",
-						"Дата подачи в ЦГиЭ",
-						"Входящий номер в ЦГиЭ",
-						"Получение",
-						];
-						var ez2 = objectlink.gOrm("gT2",[f_ez2,[],[],false,null,"and `id_ЭЗ2` = '"+ez2+"'"]);
-						
-						var f_r2 = [
-						"Р2",
-						"Заявление РПН подписано МТС",
-						"Дата подачи в РПН",
-						"Номер заявления на размещение в РПН",
-						"Получено из РПН",
-						"Передано в МТС",
-						];
-						var r2 = objectlink.gOrm("gT2",[f_r2,[],[],false,null,"and `id_Р2` = '"+r2+"'"]);
-						
-						fields = [f_zam, f_ez2, f_r2];
-						vals = [zam[0], ez2[0], r2[0]];
-
-					//}
-					break;
-				}
-				
-				var tb = cDom("TABLE");
-				showModalHtml(tb, true);
-
-				tb.setAttribute("align", "center");
-				var tr_caption = tb.appendChild(cDom("TR"));
-				var tr_bs = tb.appendChild(cDom("TR"));
-				var tr_zak = tb.appendChild(cDom("TR"));
-				var tr_inf = tb.appendChild(cDom("TR"));
-				var tr_context = tb.appendChild(cDom("TR"));
-				var tr_buttons = tb.appendChild(cDom("TR"));
-				
-				///заголовок
-				var td_caption = tr_caption.appendChild(cDom("TD"));
-				td_caption.setAttribute("align", "center");
-				var lCaption = td_caption.appendChild(cDom("h3"));
-				lCaption.innerHTML = zak_type;
-
-				///заказ
-				var td_zak = tr_zak.appendChild(cDom("TD"));
-				var tb_zak = td_zak.appendChild(cDom("TABLE"));
-				tb_zak.setAttribute("cellpadding", 10);
-				var tr_name = tb_zak.appendChild(cDom("TR"));
-				var tr_val = tb_zak.appendChild(cDom("TR"));
-				for (var i = 0; i < f_zak.length-1; i++) {
-					var td_ = tr_name.appendChild(cDom("TD"));
-					td_.innerHTML = f_zak[i];
-					var td_ = tr_val.appendChild(cDom("TD"));
-					
-					var inp = td_.appendChild(cDom("INPUT"));
-					inp.setAttribute("type", "edit");
-					inp.value = zak_vals && zak_vals.length ? zak_vals[i] : "";
-				}
-				
-				///этапы заказа
-				var td_inf = tr_inf.appendChild(cDom("TD"));
-				var tb_inf = td_inf.appendChild(cDom("TABLE"));
-				tb_inf.setAttribute("cellpadding", 10);
-				var tr = tb_inf.appendChild(cDom("TR"));
-				
-				for (var j = 0; j < fields.length; j++) {
-					var td_ = tr.appendChild(cDom("TD"));
-					td_.setAttribute("valign", "top");
-					var tb_ = td_.appendChild(cDom("TABLE"));
-					for (var i = 0; i < fields[j].length; i++) {
-						var tr_ = tb_.appendChild(cDom("TR"));
-						var td_name = tr_.appendChild(cDom("TD"));
-						var td_val = tr_.appendChild(cDom("TD"));
-						td_name.style.borderBottom = "1px solid #c4baa5";
-						td_name.innerHTML = fields[j][i];
-						//td_val.innerHTML = i > 0 ? vals[j][i*2+1] : "";
-						if (i > 0) {
-							var inp = td_val.appendChild(cDom("INPUT"));
-							inp.setAttribute("type", "edit");
-							inp.value = vals && vals.length && vals[j].length ? vals[j][i*2+1] : "";
-						} else {
-							td_name.style.fontWeight = "bold";
-							td_val.style.borderBottom = "1px solid #c4baa5";
-						}
-						
-					}
-				}
-				
-				///примечание
-				var td_context = tr_context.appendChild(cDom("TD"));
-				var tb_context = td_context.appendChild(cDom("TABLE"));
-				tb_context.style.width = "100%";
-				tb_context.setAttribute("cellpadding", 10);
-				var tr_name = tb_context.appendChild(cDom("TR"));
-				var tr_val = tb_context.appendChild(cDom("TR"));
-				var td_name = tr_name.appendChild(cDom("TD"));
-				td_name.innerHTML = "Примечание";
-				var td_val = tr_val.appendChild(cDom("TD"));
-				var ta_context = td_val.appendChild(cDom("TEXTAREA"));				
-				ta_context.value = zak_context;
-				ta_context.setAttribute("rows", 10);
-				ta_context.style.width = "100%";
-				
-				///кнопки
-				var td_buttons = tr_buttons.appendChild(cDom("TD"));
-				var bSave = td_buttons.appendChild(cDom("BUTTON"));
-				bSave.innerHTML = "Сохранить";
-				bSave.onclick = function(){
-					modal.style.display = "none";
-
-				}
-				
-			}
-		}
-		*/
 		jsTable.cols2ButtonClick.set(bclick);
 		
 	})
