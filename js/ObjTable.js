@@ -462,7 +462,6 @@ function ObjTable (queryJson, opts, container) {
 			var cellOnBlur = function(e){
 				color = "inherit"
 				if (isColorOpt) return;
-				
 				this.style.backgroundColor = color;
 				//this.classList.remove("jsTableSelectedCell");
 				$(this.domRow).find("td").each(function(){
@@ -802,7 +801,13 @@ function ObjTable (queryJson, opts, container) {
 			
 			var filter = that.filter.get();
 			result.onclick = function(){
+				var filter = that.filter.get();
+				if (!filter) return;
+				filter.clearFilters.get();
 				location.reload();
+				//that.filter.get().clearFilters.get();
+				//that.queryWhere.set("");
+				//that.domButtonFilterDelShow.get();
 			}
 			return result;
 		});

@@ -11,10 +11,12 @@
 		<script src="js/objectlink.js"></script></head>
 		<script src="js/jscharts.js"></script></head>
 		<script src="js/GetSet.js"></script>
-		<script src="js/ObjFilter.js"></script>
-		<script src="js/ObjColumn.js"></script>
-		<script src="js/ObjTable.js"></script>
+		<script src="js/Filter.js"></script>
+		<script src="js/Column.js"></script>
+		<script src="js/JsTable.js"></script>
 
+		<script src="js/jquery.maskedinput.min.js"></script>		
+		
 <script>
 ////////////policy
 	//var classes_ = objectlink.gOrm("gAnd",[[1],"n,id"]);
@@ -22,7 +24,7 @@
 	var classes = hash4arr(classes_);
 	var oids = [];
 	var key = $_GET("key", "#", location.hash);
-
+	var userId = 1;
 /*
 	var userKey = parseInt(key) || objectlink.gOrm("getObjectFromClass", [classes["Ключи доступа пользователей"] || 0, "undefined"]) || 0;
 	var userId = objectlink.gOrm("gAnd",[[userKey, classes["Пользователи"]]]);
@@ -144,7 +146,7 @@
 		var container = document.getElementsByClassName("jsTableContainer")[0];
 		var fields = ["БС","БС адрес","БС вид работ","Заказы ПИР","Заказы СМР"];
 		var sel = objectlink.gOrm("gTq2",[fields,[],[],0]);
-		sel = "select `id_БС`,"+decorateArr(fields, "`").join(",")+" from ("+sel+")x where 1=1 ";
+		sel = "select "+decorateArr(fields, "`").join(",")+" from ("+sel+")x where 1=1 ";
 
 		var query = {
 			select:sel,
@@ -164,19 +166,20 @@
 		var tbHeight = windowHeight() * (380/699);
 
 		var colsOpts = [
-			new ObjColumn({'id' : 0,  'name' : 'БС', 'width' : 70}),
-			new ObjColumn({'id' : 1,  'name' : 'БС адрес', 'width' : 300}),
-			new ObjColumn({'id' : 2,  'name' : 'БС вид работ', 'width' : 100}),
-			new ObjColumn({'id' : 3,  'name' : 'Заказы ПИР', 'width' : 120}),
-			new ObjColumn({'id' : 4,  'name' : 'Заказы СМР', 'width' : 120}),
+			new Column({'id' : 0,  'name' : 'БС', 'caption' : 'БС', 'width' : 70}),
+			new Column({'id' : 1,  'name' : 'БС адрес', 'caption' : 'Адрес', 'width' : 300}),
+			new Column({'id' : 2,  'name' : 'БС вид работ', 'caption' : 'Вид работ', 'width' : 100}),
+			new Column({'id' : 3,  'name' : 'Заказы ПИР', 'caption' : 'ПИР (Р1)', 'width' : 120}),
+			new Column({'id' : 4,  'name' : 'Заказы СМР', 'caption' : 'СМР (Р2)', 'width' : 120}),
 		];
 		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,4]};
-		var jsTable = new ObjTable(query, opts, container);
+		var jsTable = new JsTable(query, opts, container);
 
 		but1 = document.createElement("BUTTON");
 		but1.innerHTML = "Добавить БС";
 		but1.onclick = function(){
-			showModalHtml(getCard(["БС","БС номер","Стандарты БС","БС адрес","БС вид работ"],["hidden","edit","checkbox","edit","combobox"],[1,2],null,null, true), true);
+			showModalHtml(getCard(["БС","БС номер","Стандарты БС","БС адрес","БС вид работ"],
+			["hidden","edit","checkbox","edit","combobox"],[1,2],null,null, true), true);
 		}
 		addToTable(jsTable, but1);
 		
@@ -192,8 +195,8 @@
 			var f0;
 			
 			var values = mainObjId ? objectlink.gOrm("gT2",[fields, [],[],false,decorateArr(fields,"`"),"and `id_"+fields[0]+"`="+mainObjId+
-			" order by "+decorateArr(fields, "`id_", "` desc").join(",")+
-			" limit 1"]) : [];
+			" order by "+decorateArr(fields, "`d_", "` desc").join(",")+
+			" limit 1", true]) : [];
 			for (var i=0; i < fields.length; i++) {
 				val = values && values.length ? values[0][i] : undefined;
 				var field = getFieldHtml(fields[i], fieldsT[i], val);
@@ -201,6 +204,7 @@
 				if (i==0) {
 					field.linked = []
 					field.pid = parentObjectId;
+					field.linked0 = ( parentValLinked && parentValLinked.length && parentValLinked.indexOf(0) >= 0 );
 				} else if ( parentValLinked && parentValLinked.length && parentValLinked.indexOf(i) >= 0 ) {
 					fields_[0].linked.push(fields_[i])
 				};
@@ -246,17 +250,28 @@
 			return tb;
 		}
 		
+		function d2str(d) {
+			var dt = ("0" + d.getDate()).slice(-2) + ("0"+(d.getMonth()+1)).slice(-2)+
+				d.getFullYear() + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2);
+			return dt
+		}
+		
 		function getFieldVal(f) {
 			var vals = [];
 			switch (f.ft) {
 				case "hidden":
-					var val = f.fn;
+					var val = f.linked0 ? f.fn + " " + d2str(new Date()) + " " : "";
 					for (var i=0; i < f.linked.length; i++) {
 						val = val + getFieldVal(f.linked[i]).join("");
 					}
-					vals.push(val);
+					if (!f.elem[0].value) {
+						vals.push(val);
+					} else {
+						vals.push(f.elem[0].value);
+					}
 				break;
 				case "edit": 
+				case "date": 
 				case "combobox": 
 					vals.push(f.elem[0].value);
 				break;
@@ -268,7 +283,7 @@
 					}
 				break;
 				case "memo": 
-					vals.push(f.elem[0].innerHTML);
+					vals.push(f.elem[0].value);
 				break;
 			}
 			return vals;
@@ -281,7 +296,7 @@
 
 			var oid;
 			var vals = getFieldVal(f);
-
+			
 			switch (f.ft) {
 				case "combobox": 
 					oid = vals[0];
@@ -292,13 +307,13 @@
 				if (!oid && vals[i]) {
 					oid = oid || objectlink.gOrm("getObjectFromClass", [cid, vals[i]]);
 					oid = oid && oid.length ? oid[0][0] : undefined;
-					oid = oid || objectlink.gOrm("cO", [vals[i], cid]);
+					oid = oid || objectlink.gOrm("cO", [vals[i], cid, userId]);
 				}
 				
 				ret = oid;
 				
-				if (pid && oid) {
-					objectlink.gOrm("cL", [oid, pid]);
+				if (pid && oid && vals[i] != f.def) {
+					objectlink.gOrm("cL", [oid, pid, userId]);
 				}
 				
 				//console.log(pid);
@@ -331,16 +346,33 @@
 					inp.value = def;
 					tr.elem.push(inp);
 					td.setAttribute("hidden", true);
+					tr.def = def;
 					
 				break;
 				case "edit":
 					var td = tr.appendChild(cDom("TD"));
 					td.style.borderBottom = "1px solid #c4baa5";
 					var inp = td.appendChild(cDom("INPUT"));
-					inp.setAttribute("type", "text");
+					inp.setAttribute("type", "edit");
 					inp.value = def;
 					inp.style.width = "100%";
+					
 					tr.elem.push(inp);
+					tr.def = def;
+					
+				break;
+				case "date":
+					var td = tr.appendChild(cDom("TD"));
+					td.style.borderBottom = "1px solid #c4baa5";
+					var inp = td.appendChild(cDom("INPUT"));
+					inp.setAttribute("type", "date");
+					inp.value = def;
+					//var d = def ? new Date(def) : undefined;
+					//if (d && d.setDate(d.getDate() + 14) < new Date()) inp.style.backgroundColor = "#ffdddd";
+					inp.style.width = "100%";
+					
+					tr.elem.push(inp);
+					tr.def = def;
 					
 				break;
 				case "checkbox":
@@ -363,6 +395,7 @@
 						ch.checked = (vals[i][1] == def);
 						
 					}
+					tr.def = def;
 				
 				break;
 				case "combobox":
@@ -377,6 +410,7 @@
 					for (var i=0; i < opts.length; i++)
 						if (opts[i].innerHTML == def) cb.value = opts[i].value;
 					cb.style.width = "100%";
+					tr.def = def;
 				break;
 				case "memo":
 					var td = tr.appendChild(cDom("TD"));
@@ -386,6 +420,7 @@
 					inp.style.width = "500px";
 					inp.style.height = "50px";
 					tr.elem.push(inp);
+					tr.def = def;
 					
 				break;
 			}
@@ -418,7 +453,7 @@
 			var cards = [];
 			var card1 = getCard(
 			["Заказы "+zak_type,"Заказы номер","Заказы дата подписания","Заказы дата закрытия","Заказы статус","Примечание"],
-			["hidden","edit","edit","edit","combobox","memo"],[1],zak_id,bsid);
+			["hidden","edit","date","date","combobox","memo"],[1],zak_id,bsid);
 			td_zak.appendChild(card1);
 			cards.push(card1);
 
@@ -437,17 +472,17 @@
 
 					var f = ["ПСЭЗ","Взят в работу","Запрос информации у стороннего оператора","Получение ответа от стороннего оператора",
 						"Выполнен","Передан в МТС на подписание","Получен из МТС подписанный","Передан во ФБУЗ","Готов"];
-					var card2 = getCard(f, ["hidden","edit","edit","edit","edit","edit","edit","edit","edit"], [1], psez, zak_id);
+					var card2 = getCard(f, ["hidden","date","date","date","date","date","date","date","date"], [0], psez, zak_id);
 					td1.appendChild(card2);
 					cards.push(card2);
 
 					var f = ["ЭЗ1","Заявление подписано в МТС","Дата подачи в ЦГиЭ","Входящий номер в ЦГиЭ","Номер счета","Сумма","Статус счета","Получение"];
-					var card3 = getCard(f, ["hidden","edit","edit","edit","edit","edit","combobox","edit"], [1], ez1, zak_id);
+					var card3 = getCard(f, ["hidden","date","date","edit","edit","edit","combobox","date"], [0], ez1, zak_id);
 					td2.appendChild(card3);
 					cards.push(card3);
 
 					var f = ["Р1","Заявление РПН подписано МТС","Номер заявления на размещение в РПН","Дата подачи в РПН","Получено из РПН","Передано в МТС"];
-					var card4 = getCard(f, ["hidden","edit","edit","edit","edit","edit"], [1], r1, zak_id);
+					var card4 = getCard(f, ["hidden","date","edit","date","date","date"], [0], r1, zak_id);
 					td3.appendChild(card4);
 					cards.push(card4);
 				break;
@@ -459,17 +494,17 @@
 
 					var f = ["Замеры","Заявление подписано в МТС","Подано на замеры в ЦГиЭ","Входящий номер ФБУЗ заявления","Номер счета","Сумма",
 						"Статус счета","Дата проведения"];
-					var card2 = getCard(f, ["hidden","edit","edit","edit","edit","edit","combobox","edit"], [1], zam, zak_id);
+					var card2 = getCard(f, ["hidden","date","date","edit","edit","edit","combobox","date"], [0], zam, zak_id);
 					td1.appendChild(card2);
 					cards.push(card2);
 
 					var f = ["ЭЗ2","Заявление подписано в МТС","Дата подачи в ЦГиЭ","Входящий номер в ЦГиЭ","Получение"];
-					var card3 = getCard(f, ["hidden","edit","edit","edit","edit"], [1], ez2, zak_id);
+					var card3 = getCard(f, ["hidden","date","date","edit","date"], [0], ez2, zak_id);
 					td2.appendChild(card3);
 					cards.push(card3);
 
 					var f = ["Р2","Заявление РПН подписано МТС","Дата подачи в РПН","Номер заявления на размещение в РПН","Получено из РПН","Передано в МТС"];
-					var card4 = getCard(f, ["hidden","edit","edit","edit","edit","edit"], [1], r2, zak_id);
+					var card4 = getCard(f, ["hidden","date","date","edit","date","date"], [0], r2, zak_id);
 					td3.appendChild(card4);
 					cards.push(card4);
 				break;
@@ -491,7 +526,7 @@
 				}
 
 				for (var i=1; i < cards.length; i++) {
-					objectlink.gOrm("cL", [cards[i].mainObjId, cards[0].mainObjId]);
+					objectlink.gOrm("cL", [cards[i].mainObjId, cards[0].mainObjId, userId]);
 				}
 				modalClose(true);
 			};
