@@ -245,7 +245,8 @@
 		
 		var bclick = function(that){
 			var zak_type = that.col == 3 ? "ПИР" : "СМР";
-			var bsid = objectlink.gOrm("getObjectFromClass", [classes["БС"], jsTable.rows.get()[that.row][0]])[0][0];
+			//var bsid = objectlink.gOrm("getObjectFromClass", [classes["БС"], jsTable.rows.get()[that.row][0]])[0][0];
+			var bsid = objectlink.gOrm("gO", [jsTable.rows.get()[that.row][0]], null, null, classes["БС"]);
 			var zak_id = objectlink.gOrm("gT2",[["Заказы "+zak_type,"БС"],[],[],false,
 				null,"and `id_БС` = "+bsid," order by `id_Заказы "+zak_type+"` desc limit 1"]);
 			if (zak_id && zak_id.length) {

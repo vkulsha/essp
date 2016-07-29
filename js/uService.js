@@ -1701,10 +1701,8 @@ class Objects {
 	
 	get value() {
 		var val;
-		if (this.oid)
-			val = objectlink.gOrm("gO", this.oid);
-		if (val)
-			this.value = val;
+		if (this.oid) val = objectlink.gOrm("gN", [this.oid]);
+		if (val) this.value = val || "";
 		return this.cnt.value;
 	}
 	
@@ -1713,19 +1711,25 @@ class Objects {
 	}
 	
 	get pid() {
-		if (parentObject && parentObject instanceof Objects)
-			return parentObject.oid;
+		if ( this.parentObject && this.parentObject instanceof Objects ) return this.parentObject.oid;
+	}
+	
+	get parentObject() {
+		return this._parentObject;
+	}
+	
+	set parentObject(parentObject) {
+		this._parentObject = parentObject;
 	}
 	
 	save() {
-		var obj = objectlink.gOrm("getObjectFromClass", this.cid, this.value);
-		if (obj && obj.length) {
-			this.oid = obj[0][0];
-		} else {
-			if (cid)
-				this.oid = objectlink.gOrm("cO", [this.value, cid]);
-			if (this.pid)
-				objectlink.gOrm("cL", [this.oid, this.pid]);
+		var obj;
+		if (this.cid) obj = objectlink.gOrm("gO", [this.value, null, null, this.cid]);
+		
+		if (obj) this.oid = obj
+		else {
+			if (this.cid) this.oid = objectlink.gOrm("cO", [this.value, cid]);
+			if (this.pid) objectlink.gOrm("cL", [this.oid, this.pid]);
 		}
 	}
 	
