@@ -1093,6 +1093,12 @@ function gDom(id){
 	return document.getElementById(id);
 }
 
+function cInp(type, innerHTML) {
+	var el = cDom("INPUT", innerHTML);
+	el.setAttribute("type", type);
+	return el;
+}
+
 function getMainInterfaceKey(userId){
 	var num = objectlink.gOrm("gT2",[["Пользователи","Интерфейсы","Ключи интерфейсов"],[[2,1]],[],0,["`Ключи интерфейсов`"],"and `id_Пользователи` = "+userId]);
 	num = getOrmObject({columns:["Ключи интерфейсов"],data:num},"col2array");
@@ -1374,6 +1380,356 @@ function fillCardEasy(arr, id, cont){
 	}
 }	
 
+function fillSelectDom(dom, values) {
+	dom.appendChild(cDom("OPTION"));
+	for (var i=0; i < values.length; i++){
+		var opt = cDom("OPTION");
+		opt.innerHTML = values[i][1];
+		opt.value = values[i][0];
+		opt.oid = values[i][0];
+		opt.id = "opt"+values[i][0];
+		dom.appendChild(opt);
+	}
+}
+
+function d2str(d) {
+	var dt = ("0" + d.getDate()).slice(-2) + ("0"+(d.getMonth()+1)).slice(-2)+
+		d.getFullYear() + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2);
+	return dt
+}
+
+function getFieldVal(f) {
+	var vals = [];
+	switch (f.ft) {
+		case "hidden":
+			var val = f.linked0 ? f.fn + " " + d2str(new Date()) + " " : "";
+			for (var i=0; i < f.linked.length; i++) {
+				val = val + getFieldVal(f.linked[i]).join("");
+			}
+			if (!f.elem[0].value) {
+				vals.push(val);
+			} else {
+				vals.push(f.elem[0].value);
+			}
+		break;
+		case "edit": 
+		case "date": 
+		case "combobox": 
+			vals.push(f.elem[0].value);
+		break;
+		case "checkbox": 
+			for (var i=0; i < f.elem.length; i++) {
+				if (f.elem[i].checked) {
+					vals.push(f.elem[i].val);
+				}
+			}
+		break;
+		case "memo": 
+			vals.push(f.elem[0].value);
+		break;
+	}
+	return vals;
+}
+
+function saveField(f) {
+	var ret;
+	var cid = classes[f.fn];
+	var pid = f.pid;
+
+	var oid;
+	var vals = getFieldVal(f);
+	
+	switch (f.ft) {
+		case "combobox": 
+			oid = vals[0];
+		break;
+	}
+	
+	for (var i=0; i < vals.length; i++) {
+		if (!oid && vals[i]) {
+			oid = oid || objectlink.gOrm("getObjectFromClass", [cid, vals[i]]);
+			oid = oid && oid.length ? oid[0][0] : undefined;
+			oid = oid || objectlink.gOrm("cO", [vals[i], cid, userId]);
+		}
+		
+		ret = oid;
+		
+		if (pid && oid && vals[i] != f.def) {
+			objectlink.gOrm("cL", [oid, pid, userId]);
+		}
+		
+		//console.log(pid);
+		oid = undefined;
+	
+	}
+	
+	return ret;
+	
+}
+
+function getFieldHtml(fn, ft, def) {
+	def = def || "";
+	var tr = cDom("TR");
+	tr.elem = [];
+	tr.fn = fn;
+	tr.ft = ft;
+
+	var td = tr.appendChild(cDom("TD"));
+	td.style.borderBottom = "1px solid #c4baa5";
+	td.innerHTML = fn;
+	
+	switch (ft) {
+		case "hidden":
+			td.style.fontWeight = "bold";
+			var td = tr.appendChild(cDom("TD"));
+			td.style.borderBottom = "1px solid #c4baa5";
+			var inp = td.appendChild(cDom("INPUT"));
+			inp.setAttribute("type", "text");
+			inp.value = def;
+			tr.elem.push(inp);
+			td.setAttribute("hidden", true);
+			tr.def = def;
+			
+		break;
+		case "edit":
+			var td = tr.appendChild(cDom("TD"));
+			td.style.borderBottom = "1px solid #c4baa5";
+			var inp = td.appendChild(cDom("INPUT"));
+			inp.setAttribute("type", "edit");
+			inp.value = def;
+			inp.style.width = "100%";
+			
+			tr.elem.push(inp);
+			tr.def = def;
+			
+		break;
+		case "date":
+			var td = tr.appendChild(cDom("TD"));
+			td.style.borderBottom = "1px solid #c4baa5";
+			var inp = td.appendChild(cDom("INPUT"));
+			inp.setAttribute("type", "date");
+			inp.value = def;
+			//var d = def ? new Date(def) : undefined;
+			//if (d && d.setDate(d.getDate() + 14) < new Date()) inp.style.backgroundColor = "#ffdddd";
+			inp.style.width = "100%";
+			
+			tr.elem.push(inp);
+			tr.def = def;
+			
+		break;
+		case "checkbox":
+			var vals = objectlink.gOrm("gT2",[[fn]]);
+			var td = tr.appendChild(cDom("TD"));
+			td.style.borderBottom = "1px solid #c4baa5";
+			var tb_ = td.appendChild(cDom("TABLE"));
+			var trH = tb_.appendChild(cDom("TR"));
+			var trD = tb_.appendChild(cDom("TR"));
+			for (var i=0; i < vals.length; i++) {
+				var td = trH.appendChild(cDom("TD"));
+				td.align = "center";
+				td.innerHTML = vals[i][1];
+				var td = trD.appendChild(cDom("TD"));
+				td.align = "center";
+				var ch = td.appendChild(cDom("INPUT"));
+				ch.setAttribute("type", "checkbox");
+				ch.val = vals[i][1];
+				tr.elem.push(ch);
+				ch.checked = (vals[i][1] == def);
+				
+			}
+			tr.def = def;
+		
+		break;
+		case "combobox":
+			var vals = objectlink.gOrm("gT2",[[fn]]);
+			var td = tr.appendChild(cDom("TD"));
+			td.style.borderBottom = "1px solid #c4baa5";
+			var cb = td.appendChild(cDom("SELECT"));
+			tr.elem.push(cb);
+			fillSelectDom(cb, vals);
+			
+			var opts = cb.getElementsByTagName("OPTION");
+			for (var i=0; i < opts.length; i++)
+				if (opts[i].innerHTML == def) cb.value = opts[i].value;
+			cb.style.width = "100%";
+			tr.def = def;
+		break;
+		case "memo":
+			var td = tr.appendChild(cDom("TD"));
+			td.style.borderBottom = "1px solid #c4baa5";
+			var inp = td.appendChild(cDom("TEXTAREA"));
+			inp.innerHTML = def;
+			inp.style.width = "500px";
+			inp.style.height = "50px";
+			tr.elem.push(inp);
+			tr.def = def;
+			
+		break;
+	}
+	return tr;
+}
+
+///////////////
+
+class TDomValue {
+	constructor(dom, def, getValFunc){ 
+		this.getValFunc = getValFunc;
+		this._dom = dom;
+		this.value = def; 
+
+		var that = this;
+		this._dom.onchange = function() {
+			that.value = this.value;
+		}
+
+	}
+	get value() { 
+		return this.getValFunc && typeof this.getValFunc == "function" ? this.getValFunc(this) : 
+			this.getValFunc ? this.getValFunc : 
+			this._dom.value;
+		
+	}
+	set value(val) { this._dom.value = val; }
+	get dom() { return this._dom; }
+	set dom(dom) { this._dom = dom; }
+}
+
+class TLabel extends TDomValue {
+	constructor(def, getValFunc) { 
+		super(cDom("edit"), def, getValFunc); 
+		this.dom.setAttribute("readOnly", "true");
+		this.dom.style.backgroundColor = "transparent";
+		this.dom.style.border = "0px";
+	}
+}
+
+class THidden extends TLabel {
+	constructor(def, getValFunc) { 
+		super(def, getValFunc);
+		this.dom.hidden = true;
+	}
+}
+
+class TEdit extends TDomValue {
+	constructor(def, getValFunc) { super(cInp("edit"), def, getValFunc); }
+}
+
+class TDate extends TDomValue {
+	constructor(def, getValFunc) { super(cInp("date"), def, getValFunc); }
+}
+
+class TMemo extends TDomValue {
+	constructor(def, getValFunc) { super(cDom("textarea"), def, getValFunc); }
+}
+
+class TCombo extends TDomValue {
+	constructor(def, values, getValFunc) {
+		super(cDom("select"), undefined, getValFunc);
+		this.fillSelectDom(this.dom, values || []);
+		this.value = def;
+	}
+
+	fillSelectDom(dom, values) {
+		dom.innerHTML = "";
+		dom.appendChild(cDom("OPTION"));
+		for (var i=0; i < values.length; i++){
+			var opt = cDom("OPTION");
+			opt.innerHTML = values[i][1];
+			opt.value = values[i][1];
+			opt.oid = values[i][0];
+			dom.appendChild(opt);
+		}
+	}
+	
+}
+
+class Container {
+	constructor(type, value, values, getValFunc) {
+		switch (type) {
+			case "edit":
+				this.cnt = new TEdit(value, getValFunc);
+			break;
+			case "date":
+				this.cnt = new TDate(value, getValFunc);
+			break;
+			case "memo":
+				this.cnt = new TMemo(value, getValFunc);
+			break;
+			case "combo":
+				this.cnt = new TCombo(value, values, getValFunc);
+			break;
+			case "label":
+				this.cnt = new TLabel(value, getValFunc);
+			break;
+			case "hidden":
+				this.cnt = new THidden(value, getValFunc);
+			break;
+			default:
+				this.cnt = new THidden(value, getValFunc);
+			break;
+			
+		}
+	}
+	
+	get value() {
+		return this.cnt.value;
+	}
+	
+	set value(val) {
+		return this.cnt.value = val;
+	}
+}
+
+class ContainerFactory {
+	constructor() {}
+	
+	create(type, value, values, getValFunc) {
+		return new Container(type, value, values, getValFunc);
+	}
+	
+}
+
+class Objects {
+	constructor(oid, cid, parentObject, container, def) {
+		var cf = new ContainerFactory();
+		this.oid = oid;
+		this.cid = cid;
+		this.parentObject = parentObject;
+		this.cnt = container && container instanceof TDomValue ? container : cf.create("hidden", def);
+		this.value = def;
+	}
+	
+	get value() {
+		var val;
+		if (this.oid)
+			val = objectlink.gOrm("gO", this.oid);
+		if (val)
+			this.value = val;
+		return this.cnt.value;
+	}
+	
+	set value(val) {
+		this.cnt.value = val;
+	}
+	
+	get pid() {
+		if (parentObject && parentObject instanceof Objects)
+			return parentObject.oid;
+	}
+	
+	save() {
+		var obj = objectlink.gOrm("getObjectFromClass", this.cid, this.value);
+		if (obj && obj.length) {
+			this.oid = obj[0][0];
+		} else {
+			if (cid)
+				this.oid = objectlink.gOrm("cO", [this.value, cid]);
+			if (this.pid)
+				objectlink.gOrm("cL", [this.oid, this.pid]);
+		}
+	}
+	
+}
 
 
 
