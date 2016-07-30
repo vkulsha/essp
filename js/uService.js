@@ -1083,9 +1083,11 @@ $(document).ready(function() {
 */
 
 
-function cDom(type, innerHTML){
+function cDom(type, innerHTML, parentDom){
 	var ret = document.createElement(type);
-	ret.appendChild(typeof(innerHTML)=="object" ? innerHTML : document.createTextNode(innerHTML || ""));
+	if (innerHTML)
+		ret.appendChild(typeof(innerHTML)=="object" ? innerHTML : document.createTextNode(innerHTML || ""));
+	if (parentDom && ret) parentDom.appendChild(ret);
 	return ret;
 }
 
@@ -1093,8 +1095,8 @@ function gDom(id){
 	return document.getElementById(id);
 }
 
-function cInp(type, innerHTML) {
-	var el = cDom("INPUT", innerHTML);
+function cInp(type, innerHTML, parentDom) {
+	var el = cDom("INPUT", innerHTML, parentDom);
 	el.setAttribute("type", type);
 	return el;
 }
@@ -1393,8 +1395,7 @@ function fillSelectDom(dom, values) {
 }
 
 function d2str(d) {
-	var dt = ("0" + d.getDate()).slice(-2) + ("0"+(d.getMonth()+1)).slice(-2)+
-		d.getFullYear() + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2);
+	var dt = d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0" + d.getDate()).slice(-2) + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2);
 	return dt
 }
 
@@ -1573,6 +1574,7 @@ function getFieldHtml(fn, ft, def) {
 
 class TDomValue {
 	constructor(dom, def, getValFunc){ 
+		if (def == undefined)  def = "";
 		this.getValFunc = getValFunc;
 		this._dom = dom;
 		this.value = def; 
@@ -1595,8 +1597,8 @@ class TDomValue {
 }
 
 class TLabel extends TDomValue {
-	constructor(def, getValFunc) { 
-		super(cDom("edit"), def, getValFunc); 
+	constructor(def, getValFunc, parentDom) { 
+		super(cDom("edit", null, parentDom), def, getValFunc); 
 		this.dom.setAttribute("readOnly", "true");
 		this.dom.style.backgroundColor = "transparent";
 		this.dom.style.border = "0px";
@@ -1604,27 +1606,27 @@ class TLabel extends TDomValue {
 }
 
 class THidden extends TLabel {
-	constructor(def, getValFunc) { 
-		super(def, getValFunc);
+	constructor(def, getValFunc, parentDom) { 
+		super(def, getValFunc, parentDom);
 		this.dom.hidden = true;
 	}
 }
 
 class TEdit extends TDomValue {
-	constructor(def, getValFunc) { super(cInp("edit"), def, getValFunc); }
+	constructor(def, getValFunc, parentDom) { super(cInp("edit", null, parentDom), def, getValFunc); }
 }
 
 class TDate extends TDomValue {
-	constructor(def, getValFunc) { super(cInp("date"), def, getValFunc); }
+	constructor(def, getValFunc, parentDom) { super(cInp("date", null, parentDom), def, getValFunc); }
 }
 
 class TMemo extends TDomValue {
-	constructor(def, getValFunc) { super(cDom("textarea"), def, getValFunc); }
+	constructor(def, getValFunc, parentDom) { super(cDom("textarea", null, parentDom), def, getValFunc); }
 }
 
 class TCombo extends TDomValue {
-	constructor(def, values, getValFunc) {
-		super(cDom("select"), undefined, getValFunc);
+	constructor(def, values, getValFunc, parentDom) {
+		super(cDom("select"), undefined, getValFunc, null, parentDom);
 		this.fillSelectDom(this.dom, values || []);
 		this.value = def;
 	}
@@ -1644,28 +1646,29 @@ class TCombo extends TDomValue {
 }
 
 class Container {
-	constructor(type, value, values, getValFunc) {
+	constructor(type, parentDom, value, values, getValFunc) {
+		//if (value == undefined)  value = "";
 		switch (type) {
 			case "edit":
-				this.cnt = new TEdit(value, getValFunc);
+				this.cnt = new TEdit(value, getValFunc, parentDom);
 			break;
 			case "date":
-				this.cnt = new TDate(value, getValFunc);
+				this.cnt = new TDate(value, getValFunc, parentDom);
 			break;
 			case "memo":
-				this.cnt = new TMemo(value, getValFunc);
+				this.cnt = new TMemo(value, getValFunc, parentDom);
 			break;
 			case "combo":
-				this.cnt = new TCombo(value, values, getValFunc);
+				this.cnt = new TCombo(value, values, getValFunc, parentDom);
 			break;
 			case "label":
-				this.cnt = new TLabel(value, getValFunc);
+				this.cnt = new TLabel(value, getValFunc, parentDom);
 			break;
 			case "hidden":
-				this.cnt = new THidden(value, getValFunc);
+				this.cnt = new THidden(value, getValFunc, parentDom);
 			break;
 			default:
-				this.cnt = new THidden(value, getValFunc);
+				this.cnt = new THidden(value, getValFunc, parentDom);
 			break;
 			
 		}
@@ -1683,19 +1686,20 @@ class Container {
 class ContainerFactory {
 	constructor() {}
 	
-	create(type, value, values, getValFunc) {
-		return new Container(type, value, values, getValFunc);
+	create(type, parentDom, value, values, getValFunc) {
+		return new Container(type, parentDom, value, values, getValFunc);
 	}
 	
 }
 
 class Objects {
-	constructor(oid, cid, parentObject, container, def) {
+	constructor(cid, oid, container, parentObject, def) {
+		if (def == undefined)  def = "";
 		var cf = new ContainerFactory();
 		this.oid = oid;
 		this.cid = cid;
 		this.parentObject = parentObject;
-		this.cnt = container && container instanceof TDomValue ? container : cf.create("hidden", def);
+		this.cnt = container && (container instanceof Container) ? container : cf.create("hidden", def);
 		this.value = def;
 	}
 	
@@ -1724,14 +1728,18 @@ class Objects {
 	
 	save() {
 		var obj;
-		if (this.cid) obj = objectlink.gOrm("gO", [this.value, null, null, this.cid]);
+		var val = this.value;
+		if (this.cid) obj = objectlink.gOrm("gO", [val, null, null, this.cid]);
 		
 		if (obj) this.oid = obj
-		else {
-			if (this.cid) this.oid = objectlink.gOrm("cO", [this.value, cid]);
-			if (this.pid) objectlink.gOrm("cL", [this.oid, this.pid]);
-		}
+		else if (val != "" && val != undefined) {
+			if (this.cid) this.oid = objectlink.gOrm("cO", [val, this.cid]);
+		} else this.oid = undefined;
+		
+		if (this.oid && this.pid) objectlink.gOrm("cL", [this.oid, this.pid]);
 	}
+	
+	
 	
 }
 
