@@ -1645,7 +1645,91 @@ class TCombo extends TDomValue {
 	
 }
 
-class Container {
+class TCheckbox extends TDomValue {
+	constructor(def, checked, getValFunc, parentDom) { 
+		if (!getValFunc) getValFunc = function(that){ return that.dom.checked ? that.dom.value : ""};
+		//var l = cDom("LABEL", null, parentDom);
+		super(cInp("checkbox", null, parentDom), def, getValFunc);
+		this.dom.checked = checked || false;
+		//var id = d2str(new Date())+def;
+		//this.dom.id = "ch"+id;
+		//l.setAttribute("for", "ch"+id);
+		//l.innerHTML = def || "";
+		
+	}
+	
+	set checked(checked) {
+		this.dom.checked = checked;
+	}
+	
+	get checked() {
+		return this.dom.checked;
+	}
+}
+
+class TCheckboxes {
+	constructor(chValues, values, getValFunc, parentDoms) {
+		this.chbxs = [];
+		this.vals = values;
+		var parentDom = parentDoms && parentDoms.length ? parentDoms[0] : parentDoms ? parentDoms : undefined;
+		for (var i=0; i < values.length; i++) {
+			this.chbxs.push(new TCheckbox(values[i], false, null, parentDoms[i] || parentDom));
+		}
+		this.checked = chValues;
+	}
+	
+	get checked() {
+		var ret = [];
+		for (var i=0; i < this.vals.length; i++) {
+			if (this.chbxs[i].checked)
+				ret.push(this.vals[i]);
+		}
+		return ret;
+	}
+	
+	set checked(values) {
+		for (var i=0; i < this.vals.length; i++) {
+			var ind = values.indexOf(this.vals[i]);
+			this.chbxs[i].checked = ind >=0;
+		}
+	}
+	
+	get values() {
+		return this.vals;
+	}
+	
+	set values(values) {
+		this.vals = values;
+	}
+	
+	get value() { 
+		return this.getValFunc && typeof this.getValFunc == "function" ? this.getValFunc(this) : 
+			this.getValFunc ? this.getValFunc : 
+			this.values;
+		
+	}
+	
+	set value(values) {
+		this.values = values;
+	}
+	
+	get doms() { return this.chbxs; }
+	
+	set doms(doms) {
+		for (var i=0; i < chbxs.length; i++) {
+			this.chbxs[i].dom = doms[i];
+		}
+	}
+
+	get dom() { return this.doms; }
+	
+	set dom(doms) {
+		this.doms = doms;
+	}
+	
+}
+
+class TContainer {
 	constructor(type, parentDom, value, values, getValFunc) {
 		//if (value == undefined)  value = "";
 		switch (type) {
@@ -1664,6 +1748,12 @@ class Container {
 			case "label":
 				this.cnt = new TLabel(value, getValFunc, parentDom);
 			break;
+			case "checkbox":
+				this.cnt = new TCheckbox(value, false, getValFunc, parentDom);
+			break;
+			case "checkboxes":
+				this.cnt = new TCheckboxs(value, values, getValFunc, parentDom);
+			break;
 			case "hidden":
 				this.cnt = new THidden(value, getValFunc, parentDom);
 			break;
@@ -1681,25 +1771,26 @@ class Container {
 	set value(val) {
 		return this.cnt.value = val;
 	}
+	
 }
 
-class ContainerFactory {
+class TContainerFactory {
 	constructor() {}
 	
 	create(type, parentDom, value, values, getValFunc) {
-		return new Container(type, parentDom, value, values, getValFunc);
+		return new TContainer(type, parentDom, value, values, getValFunc);
 	}
 	
 }
 
-class Objects {
-	constructor(cid, oid, container, parentObject, def) {
+class TField {
+	constructor(cid, oid, container, parentField, def) {
 		if (def == undefined)  def = "";
-		var cf = new ContainerFactory();
+		var cf = new TContainerFactory();
 		this.oid = oid;
 		this.cid = cid;
-		this.parentObject = parentObject;
-		this.cnt = container && (container instanceof Container) ? container : cf.create("hidden", def);
+		this.parentField = parentField;
+		this.cnt = container && (container instanceof TContainer) ? container : cf.create("hidden", def);
 		this.value = def;
 	}
 	
@@ -1715,15 +1806,15 @@ class Objects {
 	}
 	
 	get pid() {
-		if ( this.parentObject && this.parentObject instanceof Objects ) return this.parentObject.oid;
+		if ( this.parentField && this.parentField instanceof TField ) return this.parentField.oid;
 	}
 	
-	get parentObject() {
-		return this._parentObject;
+	get parentField() {
+		return this._parentField;
 	}
 	
-	set parentObject(parentObject) {
-		this._parentObject = parentObject;
+	set parentField(parentField) {
+		this._parentField = parentField;
 	}
 	
 	save() {
@@ -1743,7 +1834,87 @@ class Objects {
 	
 }
 
+////["Заказы ПИР", "Заказы дата подписания", "Заказы дата закрытия"]
+function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjId, parentField, bSaveFunc) {
+			var tb = cDom("TABLE");
+			var fields_ = [];
+			var cntf = new TContainerFactory();
+			parentField = parentField instanceof TField ? parentField : new TField(null, parentField);
+			var mainCnt;
+			var cnts = [];
 
+			var values = mainObjId ? objectlink.gOrm("gT2",[fields, [],[],false,decorateArr(fields,"`"),"and `id_"+fields[0]+"`="+mainObjId+
+			" order by "+decorateArr(fields, "`d_", "` desc").join(",")+
+			" limit 1", true]) : [];
+
+			for (var i=0; i < fields.length; i++) {
+				var tr = tb.appendChild(cDom("TR"));
+				tb.appendChild(tr);
+				var td = tr.appendChild(cDom("TD"));
+				td.innerHTML = fields[i];
+				var td = tr.appendChild(cDom("TD"));
+				
+				var val = values && values.length ? values[0][i] : undefined;
+				var cnt;
+
+				if (i == 0 && !val) {
+					var valFunc = function(that){
+						var ret = "";
+						var lnk = that.linked;
+
+						if (lnk && lnk.length) {
+							for (var j=0; j < lnk.length; j++) {
+								var field = that.fields[lnk[j]];
+								var val = field ? field.value : lnk[j];
+								ret = ret + val;
+							}
+						} else if (lnk) {
+							ret = lnk + d2str(new Date());
+						} else {
+							ret = d2str(new Date());
+						}
+						return ret;
+					}
+					
+					mainCnt = cntf.create(fieldsT[i], td, null, null, valFunc);
+					cnt = mainCnt;
+					
+				} else {
+					cnt = cntf.create(fieldsT[i], td, val);
+					if (i == 0) mainCnt = cnt;
+
+				}
+				var field = new TField(classes[fields[i]], null, cnt, i == 0 ? parentField : fields_[0], val);
+				fields_.push(field);
+				cnts.push(cnt);
+			}
+			mainCnt.cnt.fields = cnts;
+			mainCnt.cnt.linked = mainFieldValLinkedFieldNums;
+			
+			var tr = tb.appendChild(cDom("TR"));
+			var td = tr.appendChild(cDom("TD"));
+			var td = tr.appendChild(cDom("TD"));
+
+			tb.fields = fields_;
+			tb.mainField = fields_[0];
+			tb.funcSave = function(){
+				for (var i=0; i < fields.length; i++) {
+					this.fields[i].save();
+				}
+			};
+			
+			if (bSaveFunc) {
+				var but = td.appendChild(cDom("BUTTON"));
+				but.innerHTML = "Сохранить";
+				but.onclick = function(){
+					tb.funcSave();
+					if (typeof bSaveFunc == "function") bSaveFunc();
+				};
+			}
+			
+			return tb;
+	
+}
 
 
 

@@ -14,8 +14,6 @@
 		<script src="js/Filter.js"></script>
 		<script src="js/Column.js"></script>
 		<script src="js/JsTable.js"></script>
-
-		<script src="js/jquery.maskedinput.min.js"></script>		
 		
 <script>
 ////////////policy
@@ -263,7 +261,7 @@
 			td_zak.setAttribute("align", "center");
 			
 			var cards = [];
-			var card1 = getCard(
+			var card1 = createFieldsCard(
 			["Заказы "+zak_type,"Заказы номер","Заказы дата подписания","Заказы дата закрытия","Заказы статус","Примечание"],
 			["hidden","edit","date","date","combobox","memo"],[1],zak_id,bsid);
 			td_zak.appendChild(card1);
@@ -284,17 +282,17 @@
 
 					var f = ["ПСЭЗ","Взят в работу","Запрос информации у стороннего оператора","Получение ответа от стороннего оператора",
 						"Выполнен","Передан в МТС на подписание","Получен из МТС подписанный","Передан во ФБУЗ","Готов"];
-					var card2 = getCard(f, ["hidden","date","date","date","date","date","date","date","date"], [0], psez, zak_id);
+					var card2 = createFieldsCard(f, ["hidden","date","date","date","date","date","date","date","date"], null, psez, card1.mainField);
 					td1.appendChild(card2);
 					cards.push(card2);
 
 					var f = ["ЭЗ1","Заявление подписано в МТС","Дата подачи в ЦГиЭ","Входящий номер в ЦГиЭ","Номер счета","Сумма","Статус счета","Получение"];
-					var card3 = getCard(f, ["hidden","date","date","edit","edit","edit","combobox","date"], [0], ez1, zak_id);
+					var card3 = createFieldsCard(f, ["hidden","date","date","edit","edit","edit","combobox","date"], null, ez1, card1.mainField);
 					td2.appendChild(card3);
 					cards.push(card3);
 
 					var f = ["Р1","Заявление РПН подписано МТС","Номер заявления на размещение в РПН","Дата подачи в РПН","Получено из РПН","Передано в МТС"];
-					var card4 = getCard(f, ["hidden","date","edit","date","date","date"], [0], r1, zak_id);
+					var card4 = createFieldsCard(f, ["hidden","date","edit","date","date","date"], null, r1, card1.mainField);
 					td3.appendChild(card4);
 					cards.push(card4);
 				break;
@@ -306,17 +304,17 @@
 
 					var f = ["Замеры","Заявление подписано в МТС","Подано на замеры в ЦГиЭ","Входящий номер ФБУЗ заявления","Номер счета","Сумма",
 						"Статус счета","Дата проведения"];
-					var card2 = getCard(f, ["hidden","date","date","edit","edit","edit","combobox","date"], [0], zam, zak_id);
+					var card2 = createFieldsCard(f, ["hidden","date","date","edit","edit","edit","combobox","date"], null, zam, card1.mainField);
 					td1.appendChild(card2);
 					cards.push(card2);
 
 					var f = ["ЭЗ2","Заявление подписано в МТС","Дата подачи в ЦГиЭ","Входящий номер в ЦГиЭ","Получение"];
-					var card3 = getCard(f, ["hidden","date","date","edit","date"], [0], ez2, zak_id);
+					var card3 = createFieldsCard(f, ["hidden","date","date","edit","date"], null, ez2, card1.mainField);
 					td2.appendChild(card3);
 					cards.push(card3);
 
 					var f = ["Р2","Заявление РПН подписано МТС","Дата подачи в РПН","Номер заявления на размещение в РПН","Получено из РПН","Передано в МТС"];
-					var card4 = getCard(f, ["hidden","date","date","edit","date","date"], [0], r2, zak_id);
+					var card4 = createFieldsCard(f, ["hidden","date","date","edit","date","date"], null, r2, card1.mainField);
 					td3.appendChild(card4);
 					cards.push(card4);
 				break;
@@ -337,9 +335,9 @@
 					card.funcSave();
 				}
 
-				for (var i=1; i < cards.length; i++) {
-					objectlink.gOrm("cL", [cards[i].mainObjId, cards[0].mainObjId, userId]);
-				}
+				//for (var i=1; i < cards.length; i++) {
+				//	objectlink.gOrm("cL", [cards[i].mainObjId, cards[0].mainObjId, userId]);
+				//}
 				modalClose(true);
 			};
 			
