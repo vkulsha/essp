@@ -1741,6 +1741,8 @@ class TContainer {
 			break;
 			case "memo":
 				this.cnt = new TMemo(value, getValFunc, parentDom);
+				this.cnt.dom.style.width = "500px";
+				this.cnt.dom.style.height = "50px";
 			break;
 			case "combo":
 				this.cnt = new TCombo(value, values, getValFunc, parentDom);
@@ -1762,6 +1764,8 @@ class TContainer {
 			break;
 			
 		}
+		this.cnt.dom.style.width = !this.cnt.dom.style.width ? "100%" : this.cnt.dom.style.width;
+
 	}
 	
 	get value() {
@@ -1851,8 +1855,10 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 				var tr = tb.appendChild(cDom("TR"));
 				tb.appendChild(tr);
 				var td = tr.appendChild(cDom("TD"));
+				td.style.borderBottom = "1px solid #c4baa5";
 				td.innerHTML = fields[i];
 				var td = tr.appendChild(cDom("TD"));
+				td.style.borderBottom = "1px solid #c4baa5";
 				
 				var val = values && values.length ? values[0][i] : undefined;
 				var cnt;
