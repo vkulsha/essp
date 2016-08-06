@@ -165,7 +165,7 @@
 		but1.innerHTML = "Добавить БС";
 		but1.onclick = function(){
 			showModalHtml(getCard(["БС","БС номер","Стандарты БС","БС адрес","БС вид работ"],
-			["hidden","edit","checkbox","edit","combobox"],[1,2],null,null, true), true);
+			["hidden","edit","checkbox","edit","combo"],[1,2],null,null, true), true);
 		}
 		addToTable(jsTable, but1);
 		
@@ -263,7 +263,8 @@
 			var cards = [];
 			var card1 = createFieldsCard(
 			["Заказы "+zak_type,"Заказы номер","Заказы дата подписания","Заказы дата закрытия","Заказы статус","Примечание"],
-			["hidden","edit","date","date","combobox","memo"],[1],zak_id,bsid);
+			["hidden","edit","date","date","combo","memo"],[1],zak_id,bsid);
+			
 			td_zak.appendChild(card1);
 			cards.push(card1);
 
@@ -287,7 +288,7 @@
 					cards.push(card2);
 
 					var f = ["ЭЗ1","Заявление подписано в МТС","Дата подачи в ЦГиЭ","Входящий номер в ЦГиЭ","Номер счета","Сумма","Статус счета","Получение"];
-					var card3 = createFieldsCard(f, ["hidden","date","date","edit","edit","edit","combobox","date"], null, ez1, card1.mainField);
+					var card3 = createFieldsCard(f, ["hidden","date","date","edit","edit","edit","combo","date"], null, ez1, card1.mainField);
 					td2.appendChild(card3);
 					cards.push(card3);
 
@@ -304,7 +305,7 @@
 
 					var f = ["Замеры","Заявление подписано в МТС","Подано на замеры в ЦГиЭ","Входящий номер ФБУЗ заявления","Номер счета","Сумма",
 						"Статус счета","Дата проведения"];
-					var card2 = createFieldsCard(f, ["hidden","date","date","edit","edit","edit","combobox","date"], null, zam, card1.mainField);
+					var card2 = createFieldsCard(f, ["hidden","date","date","edit","edit","edit","combo","date"], null, zam, card1.mainField);
 					td1.appendChild(card2);
 					cards.push(card2);
 

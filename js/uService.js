@@ -1626,7 +1626,7 @@ class TMemo extends TDomValue {
 
 class TCombo extends TDomValue {
 	constructor(def, values, getValFunc, parentDom) {
-		super(cDom("select"), undefined, getValFunc, null, parentDom);
+		super(cDom("select", null, parentDom), undefined, getValFunc, null, parentDom);
 		this.fillSelectDom(this.dom, values || []);
 		this.value = def;
 	}
@@ -1636,9 +1636,8 @@ class TCombo extends TDomValue {
 		dom.appendChild(cDom("OPTION"));
 		for (var i=0; i < values.length; i++){
 			var opt = cDom("OPTION");
-			opt.innerHTML = values[i][1];
-			opt.value = values[i][1];
-			opt.oid = values[i][0];
+			opt.innerHTML = values[i];
+			opt.value = values[i];
 			dom.appendChild(opt);
 		}
 	}
@@ -1886,7 +1885,16 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 					cnt = mainCnt;
 					
 				} else {
-					cnt = cntf.create(fieldsT[i], td, val);
+					var vals;
+					if (fieldsT[i] == "combo") {
+						vals = objectlink.gOrm("gT2",[[fields[i]]]);
+						var arr = [];
+						for (var j=0; j < vals.length; j++) {
+							arr.push(vals[j][1]);
+						}
+						vals = arr;
+					}
+					cnt = cntf.create(fieldsT[i], td, val, vals);
 					if (i == 0) mainCnt = cnt;
 
 				}
