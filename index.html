@@ -23,40 +23,29 @@
 	var oids = [];
 	var key = $_GET("key", "#", location.hash);
 	var userId = 1;
-/*
-	var userKey = parseInt(key) || objectlink.gOrm("getObjectFromClass", [classes["Ключи доступа пользователей"] || 0, "undefined"]) || 0;
-	var userId = objectlink.gOrm("gAnd",[[userKey, classes["Пользователи"]]]);
-	if (userId && userId.length){
-		userId = userId[0][0];
-		var mainInterface = getMainInterfaceKey(userId);
-		
-		if (mainInterface) {
-			$(document).ready(function() {
-				var pLogin = gDom("pLogin");
-				pLogin.style.left = Math.round(windowWidth()/2) - 100 + "px";
-				pLogin.style.top = Math.round(windowHeight()/2) - 50 + "px";
-				var policy = showInterfaceElements(userId, mainInterface);
 
-				var bLogin = gDom("bLogin");
-				bLogin.onclick = function(){
-					var eUser = $("#eUser").val();
-					var password = document.fLogin.ePassword.value;
-				
-					var u = objectlink.gOrm("gAnd",[[classes["Пользователи"]],"id",false,"and n='"+eUser+"'"]);
-					var p = objectlink.gOrm("gAnd",[[classes["Пароли пользователей"]],"id",false,"and n='"+password+"'"]);
-					if (u && p && u.length && p.length){
-						var key = objectlink.gOrm("gAnd", [[u[0][0], p[0][0], classes["Ключи доступа пользователей"]]]);
-						if (key && key.length){
-							gDom("mainContainer").hidden = true;
-						}
-					}
-				}
-			});
-		}
-	}
-*/
 ////////////documentReady
 	$(document).ready(function(){
+		var pLogin = gDom("pLogin");
+		pLogin.style.left = Math.round(windowWidth()/2) - 100 + "px";
+		pLogin.style.top = Math.round(windowHeight()/2) - 50 + "px";
+
+		var bLogin = gDom("bLogin");
+		bLogin.onclick = function(){
+			var eUser = $("#eUser").val();
+			var password = document.fLogin.ePassword.value;
+			var u = objectlink.gOrm("gAnd",[[classes["Пользователи"]],"id",false,"and n='"+eUser+"'"]);
+			var p = objectlink.gOrm("gAnd",[[classes["Пароли пользователей"]],"id",false,"and n='"+password+"'"]);
+			if (u && p && u.length && p.length){
+				var key = objectlink.gOrm("gAnd", [[u[0][0], p[0][0], classes["Ключи доступа пользователей"]]]);
+				console.log(p[0][0]);
+				if (key && key.length){
+					gDom("mainContainer").hidden = true;
+				}
+			}
+		}
+
+
 		var pSearch = gDom("pSearch");
 
 		var pDop =  gDom("pDop");
@@ -393,7 +382,7 @@
 			<tr><td>Высота информационного окна</td><td><input type='edit' id='eDopHeight'/></td></tr>
 			</table>
 		</div>
-		<div style='position:absolute; left:0px; top:0px; width:100%; height:100%; z-index:1100000; background-color:rgba(0,0,0,0.7)' hidden id='mainContainer'>
+		<div style='position:absolute; left:0px; top:0px; width:100%; height:100%; z-index:1100000; background-color:rgba(0,0,0,0.7)'  id='mainContainer'>
 			<div id='pLogin' style='position:fixed; left:500px; top:400px; background-color:rgba(0,0,0,0.5)'>
 				<form name="fLogin" onsubmit='return false;' id='fLogin'>
 				<table cellpadding="5" cellspacing="5">
