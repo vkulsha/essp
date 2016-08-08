@@ -31,12 +31,13 @@ class ObjectLink {
 			
 			if (!$id) {
 				$id = $this->sql->iT(["object", "n", "'$n'"]);  
+				
+				if ($pid) {
+					$this->cL([$id, $pid, $u]);
+				}
+
 			}
 
-			if ($pid) {
-				$this->cL([$id, $pid, $u]);
-			}
-			
 			$ret = $id;
 			
 		} catch (Exception $e) {
@@ -716,8 +717,74 @@ class ObjectLink {
 		}
 	}
 
+	public function getObjectsAndLinks($params) {
+		try {
+			$arr = $params[0];//array of oid to need
+			$arr = join(",",$arr);
+			$obj = $this->sql->sT(["object", "id, n", "and id in ($arr)", " order by id"]);
+			$lnk = $this->sql->sT(["link", "o1, o2", "and o1 in ($arr) and o2 in ($arr) ", " order by id"]);
+			
+			return array($obj, $lnk);//array of [ [[oid, n]... ], [[o1, o2]... ] ]
+			
+		} catch (Exception $e){
+			print($e);
+			return null;
+		}
+	}
 
-
+	public function createObjectsAndLinks($params) {
+		try {
+			$n = $params[0];//temp object name
+			$arr = $params[1];//getObjectsAndLinks result
+			
+			$objArr = $arr[0];
+			$lnkArr = $arr[1];
+			
+			$cid = $this->cO([$n]);
+			
+			foreach ($objArr as &$obj) {
+				$id = &$obj[0];
+				$n = &$obj[1];
+				
+				$oid = $this->cO([$n, $id == 1 ? 1 : $cid]);
+				$obj[] = $oid;
+				$id = "old_$id";
+			}
+			
+			foreach ($lnkArr as &$lnk) {
+				$o1 = &$lnk[0];
+				$o2 = &$lnk[1];
+				$o1 = "old_$o1";
+				$o2 = "old_$o2";
+				
+				foreach ($objArr as &$obj) {
+					$idOld = $obj[0];
+					$idNew = $obj[2];
+					
+					if ($idOld == $o1) {
+						$o1 = $idNew;
+					}
+					
+					if ($idOld == $o2) {
+						$o2 = $idNew;
+					}
+				}
+			}
+			
+			foreach ($lnkArr as $lnk) {
+				$o1 = $lnk[0];
+				$o2 = $lnk[1];
+				if ($o1 == 1 && $o2 == 1) continue;
+				$this->cL([$o1, $o2]);
+			}
+			
+			return array($objArr, $lnkArr);
+			
+		} catch (Exception $e){
+			print($e);
+			return null;
+		}
+	}
 	
 	
 }
