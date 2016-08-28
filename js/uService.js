@@ -1838,7 +1838,7 @@ class TField {
 }
 
 ////["Заказы ПИР", "Заказы дата подписания", "Заказы дата закрытия"]
-function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjId, parentField, bSaveFunc) {
+function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjId, parentField, bSaveFunc, frm, jsTable) {
 			var tb = cDom("TABLE");
 			var fields_ = [];
 			var cntf = new TContainerFactory();
@@ -1923,6 +1923,9 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 				but.onclick = function(){
 					tb.funcSave();
 					if (typeof bSaveFunc == "function") bSaveFunc();
+					if (frm && frm instanceof TForm) frm.visible = false;
+					if (jsTable && jsTable instanceof JsTable) jsTable.refreshTable.get();
+
 				};
 			}
 			
@@ -1930,8 +1933,93 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 	
 }
 
+class TForm {
+	constructor(parentDom, width, height, left, top, zIndex, visible) {
+		this.dom_ = cDom("DIV");
+		parentDom = parentDom || document.body;
+		if (parentDom) parentDom.appendChild(this.dom_);
+		this.dom_.style.display = visible ? "block" : "none";
+		this.dom_.style.position = "fixed";
+		this.dom_.style.zIndex = zIndex || 100;
+		this.dom_.style.left = 0;
+		this.dom_.style.top = 0;
+		this.dom_.style.width = "100%";
+		this.dom_.style.height = "100%";
+		this.dom_.style.overflow = "hidden";
+		this.dom_.style.backgroundColor = "rgba(255,255,255,0.8)";
+		
+		this.body_ = this.dom_.appendChild(cDom("DIV"));
+		this.body_.style.position = "relative";
+		this.body_.style.backgroundColor = "#fff";
+		this.body_.style.margin = "auto";
+		//this.body_.style.padding = 0;
+		this.body_.style.padding = "5px 5px 5px 5px";
+		this.body_.style.left = left || 0;
+		this.body_.style.top = top || 0;
+		this.body_.style.width = width || "90%";
+		this.body_.style.height = height || this.body_.style.height;
+		this.body_.style.boxShadow = "0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19)";
+		//this.body_.style.animationName = "animatetop"; ///animate off
+		//this.body_.style.animationDuration = "0.8s"; 	 ///animate off
+		
+		this.head = cDom("DIV");
+		this.head.style.color = "#000";
+		this.head.style.float = "right";
+		this.head.style.fontSize = "28px";
+		this.head.style.fontWeight = "bold";
+		this.head.style.cursor = "pointer";
+		this.head.style.padding = "0px 5px";
+		
+		this.span = this.head.appendChild(cDom("SPAN"));
+		this.span.innerHTML = "&times";
 
-
+		this.span.frm = this;
+		this.span.onclick = function() {
+			this.frm.visible = false;
+		}
+		this.body = "<br><br>";
+	}
+	
+	set visible(val) {
+		this.dom.style.display = val ? "block" : "none";
+	}
+	
+	get dom() {
+		return this.dom_;
+	}
+	
+	get body() {
+		return this.body_;
+	}
+	
+	set body(val) {
+		$(this.body_).html("");
+		$(this.body_).append(this.head);
+		$(this.body_).append("<BR><BR>");
+		$(this.body_).append(val);
+	}
+	
+	set width(val) {
+		this.body.style.width = val;
+	}
+	
+	set height(val) {
+		this.body.style.height = val;
+	}
+	
+	set top(val) {
+		this.body.style.top = val;
+	}
+	
+	set left(val) {
+		this.body.style.left = val;
+	}
+	
+	set zIndex(val) {
+		this.dom.style.zIndex = val;
+	}
+	
+}
 
 
 

@@ -149,17 +149,31 @@
 		];
 		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,4]};
 		var jsTable = new JsTable(query, opts, container);
-
+		
+		var frmCreateBs = new TForm();
+		var frmCreateZakaz = new TForm();
+		
 		but1 = document.createElement("BUTTON");
 		but1.innerHTML = "Добавить БС";
 		but1.onclick = function(){
-			showModalHtml(getCard(["БС","БС номер","Стандарты БС","БС адрес","БС вид работ"],
-			["hidden","edit","checkbox","edit","combo"],[1,2],null,null, true), true);
+			var res = getCard(["БС","БС номер","Стандарты БС","БС адрес","БС вид работ"],
+			["hidden","edit","checkbox","edit","combobox"],[1,2],null,null, true);
+			
+			//var res = createFieldsCard(
+			//	["БС","БС номер","БС адрес","БС вид работ"],
+			//	["hidden","edit","edit","combo"],[1,2],null,null, true, frmCreateBs, jsTable);
+			
+			frmCreateBs.body = res;
+			frmCreateBs.top = "100px";
+			frmCreateBs.visible = true;
+			//showModalHtml(res, true);
+			
 		}
 		addToTable(jsTable, but1);
 		
-		function modalClose(refresh) {
+		function modalClose(refresh, frm) {
 			modal.style.display = "none";
+			frm.visible = false;
 			jsTable.refreshTable.get();
 		
 		}
@@ -218,7 +232,7 @@
 				but.innerHTML = "Сохранить";
 				but.onclick = function(){
 					tb.funcSave();
-					modalClose(true);
+					modalClose(true, frmCreateBs);
 				};
 			}
 			
@@ -328,11 +342,14 @@
 				//for (var i=1; i < cards.length; i++) {
 				//	objectlink.gOrm("cL", [cards[i].mainObjId, cards[0].mainObjId, userId]);
 				//}
-				modalClose(true);
+				modalClose(true, frmCreateZakaz);
 			};
 			
 			
-			showModalHtml(tb, true);
+			//showModalHtml(tb, true);
+			frmCreateZakaz.body = tb;
+			frmCreateZakaz.top = "100px";
+			frmCreateZakaz.visible = true;
 			
 		}
 		
