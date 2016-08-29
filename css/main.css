@@ -177,3 +177,34 @@ img, .tMenu, #mainCaption {
   display:table-column;         
   width:100%;
 }
+
+.menubutton {
+    background-color: #f8f1da;
+    -webkit-transition-duration: 0.25s; /* Safari */
+    transition-duration: 0.25s;
+	border: 1px solid #f8f1da;
+	border-radius: 3px;
+	box-shadow: 0 2px 2px 0 rgba(50,50,50,0.19);
+    color: #948a75;
+	cursor : pointer;
+}
+
+.menubutton:hover {
+    background-color: #f2ead4;
+}
+
+button {
+    background-color: #e4dac5;
+    -webkit-transition-duration: 0.25s; /* Safari */
+    transition-duration: 0.25s;
+	border: 1px solid #c4baa5;
+	border-radius: 3px;
+	box-shadow: 0 2px 2px 0 rgba(50,50,50,0.19);
+    color: #948a75;
+	cursor : pointer;
+}
+
+button:hover {
+    background-color: #f2ead4;
+    /*color: #c4baa5;*/
+}

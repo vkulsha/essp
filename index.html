@@ -117,17 +117,12 @@
 			oid = $_GET("oid", "#", location.hash);// || "115";
 			//pDop.hidden = false;
 		}
-
-		var container = document.getElementsByClassName("jsTableContainer")[0];
+///table1
 		var fields = ["БС","БС адрес","БС вид работ","Заказы ПИР","Заказы СМР"];
 		var sel = objectlink.gOrm("gTq2",[fields,[],[],0]);
 		sel = "select "+decorateArr(fields, "`").join(",")+" from ("+sel+")x where 1=1 ";
 
-		var query = {
-			select:sel,
-			where:"",
-			order:""
-		};
+		var query = { select:sel, where:"", order:""	};
 		var colors = [
 			new RowColorMarker({
 				color: "#ffeeee",
@@ -148,8 +143,97 @@
 			new Column({'id' : 4,  'name' : 'Заказы СМР', 'caption' : 'СМР (Р2)', 'width' : 120}),
 		];
 		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,4]};
-		var jsTable = new JsTable(query, opts, container);
 		
+		var frmContainerMenu1 = new TForm();
+		var container1 = cDom("DIV");
+		frmContainerMenu1.body = container1;
+
+		var jsTable = new JsTable(query, opts, container1);
+		frmContainerMenu1.top = "100px";
+///table2
+		var fields = ["БС","БС адрес","БС вид работ"];
+		var sel = objectlink.gOrm("gTq2",[fields,[],[],0]);
+		sel = " select f1, f2, f3, f4, f5, f6, f7, f8, f9, f10 from ("+
+		"select 1010 `f1`,'ООО РБ' `f2`,'ТЭС' `f3`,null `f4`,null `f5`,null `f6`,null `f7`,null `f8`,null `f9`,null `f10` )x where 1=1 ";
+		var query = { select:sel, where:"", order:""	};
+		var colors = undefined;
+		var tbHeight = windowHeight() * (380/699);
+
+		var colsOpts = [
+			new Column({'id' : 0,  'name' : 'f1', 'caption' : 'БС', 'width' : 70}),
+			new Column({'id' : 1,  'name' : 'f2', 'caption' : 'Опора', 'width' : 100}),
+			
+			new Column({'id' : 2,  'name' : 'f3', 'caption' : 'Подрядчик', 'width' : 100}),
+			new Column({'id' : 3,  'name' : 'f4', 'caption' : 'Договор ПИР', 'width' : 100}),
+			new Column({'id' : 4,  'name' : 'f5', 'caption' : 'Договор СМР', 'width' : 100}),
+			new Column({'id' : 5,  'name' : 'f6', 'caption' : 'Счет ПИР', 'width' : 100}),
+			new Column({'id' : 6,  'name' : 'f7', 'caption' : 'Счет СМР', 'width' : 100}),
+			new Column({'id' : 7,  'name' : 'f8', 'caption' : 'КЗД', 'width' : 100}),
+			new Column({'id' : 8,  'name' : 'f9', 'caption' : 'Счет-фактура', 'width' : 100}),
+			new Column({'id' : 9,  'name' : 'f10', 'caption' : 'Комментарий', 'width' : 100}),
+		];
+		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,4,5,6,7,8,9]};
+		
+		var frmContainerMenu2 = new TForm();
+		var container2 = cDom("DIV");
+		frmContainerMenu2.body = container2;
+
+		var jsTable2 = new JsTable(query, opts, container2);
+		//console.log(query);
+		frmContainerMenu2.top = "100px";
+		
+///main menu
+		var containerMenu = document.getElementsByClassName("jsTableContainer")[0];
+		var tbMenu = cDom("TABLE", null, containerMenu);
+		tbMenu.setAttribute("cellpadding", 10);
+		var trMenu = cDom("TR", null, tbMenu);
+///menu1
+		var tdMenu = cDom("TD", null, trMenu);
+		var but = tdMenu.appendChild(cDom("TD"));
+		var tb = cDom("TABLE", null, but);
+		var tr = cDom("TR", null, tb);
+		var td = cDom("TD", null, tr);
+		var img = td.appendChild(cDom("IMG"));
+		var tr = cDom("TR", null, tb);
+		var td = cDom("TD", null, tr);
+		var lab = td.appendChild(cDom("LABEL"));
+
+		tdMenu.setAttribute("align","center");
+		but.classList.add("menubutton");
+		but.style.width = "200px";
+		but.style.height = "180px";
+		img.src = "images/mts.png";
+		img.style.height = "130px";
+		img.style.width= "auto";
+		lab.innerHTML = "Движение Р1/Р2 (МТС)";
+		but.onclick = function(){
+			frmContainerMenu1.visible = true;
+		}
+///menu2		
+		var tdMenu = cDom("TD", null, trMenu);
+		var but = tdMenu.appendChild(cDom("TD"));
+		var tb = cDom("TABLE", null, but);
+		var tr = cDom("TR", null, tb);
+		var td = cDom("TD", null, tr);
+		var img = td.appendChild(cDom("IMG"));
+		var tr = cDom("TR", null, tb);
+		var td = cDom("TD", null, tr);
+		var lab = td.appendChild(cDom("LABEL"));
+
+		tdMenu.setAttribute("align","center");
+		but.classList.add("menubutton");
+		but.style.width = "200px";
+		but.style.height = "180px";
+		img.src = "images/bCard.png";
+		img.style.height = "130px";
+		img.style.width= "auto";
+		lab.innerHTML = "Документы подрядчиков";
+		but.onclick = function(){
+			frmContainerMenu2.visible = true;
+		}
+		
+////
+
 		var frmCreateBs = new TForm();
 		var frmCreateZakaz = new TForm();
 		
