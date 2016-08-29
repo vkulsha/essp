@@ -906,7 +906,7 @@ function export2Excel(domTable){
 	$(dom).find("TEXTAREA").each(function(){
 		this.parentNode.innerHTML = this.innerHTML;
 	})
-	window.open('data:application/vnd.ms-excel,' + encodeURIComponent(dom.outerHTML));
+	window.open('data:application/vnd.ms-excel,' + '\uFEFF' + encodeURIComponent(dom.outerHTML));
 }
 
 function rgb(r,g,b)
