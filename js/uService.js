@@ -428,6 +428,14 @@ function decorateArr(arr, decorator1, decorator2){//return the object with field
 	return (decorator1+arr.join(decorator2+"|"+decorator1)+decorator2).split("|");
 }
 
+function arroundArr(arr, pattern) {
+	var ret = [];
+	for (var i = 0; i < arr.length; i++) {
+		ret.push(pattern.split("$").join(arr[i]));
+	}
+	return ret;
+}
+
 function eventsList(element) {
 	var events = element.data('events');
 	if (events !== undefined) return events;
@@ -1880,7 +1888,13 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 						var frm = new TForm();
 						var fields = this.linkedFields;
 						var fieldsT = this.linkedFieldsT;
-						if (fields && fields.length>1) {
+						if (fields) {
+							if (fields.length == 1) {
+								fields.push(fields[0]);
+								fieldsT.push("edit");
+								fields[0] = "Добавить новое значение";
+								fieldsT[0] = "hidden";
+							}
 							var res = createFieldsCard(fields,fieldsT,[1],null,null, true, frm);
 							frm.body = res;
 							frm.top = "100px";
@@ -1959,7 +1973,6 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 					if (typeof bSaveFunc == "function") bSaveFunc();
 					if (frm && frm instanceof TForm) frm.visible = false;
 					if (jsTable && jsTable instanceof JsTable) jsTable.refreshTable.get();
-
 				};
 			}
 			

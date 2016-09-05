@@ -340,9 +340,9 @@ class ObjectLink {
 						$body[] = $b;
 					} else {
 						$h = "";
-						if ($groupbyind !== false) {
-							$h = ",case when count(distinct o".$i.".id) <= 2 then group_concat(distinct o".$i.".id) else concat(o".$i.".id,'..') end `id_".$col."` ".
-								",case when count(distinct o".$i.".id) <= 2 then group_concat(distinct o".$i.".n)  else concat(o".$i.".n,'..')  end `".$col."` ".
+						if ($groupbyind !== false) {///*order by o".$i.".id desc*/
+							$h = ",case when count(distinct o".$i.".id) <= 2 then group_concat(distinct o".$i.".id SEPARATOR ';') else concat(o".$i.".id,';..') end `id_".$col."` ".
+								",case when count(distinct o".$i.".id) <= 2 then group_concat(distinct o".$i.".n SEPARATOR ';') else concat(o".$i.".n,';..') end `".$col."` ".
 								",count(distinct o".$i.".id) `кол-во ".$col."` \n";
 						} else {
 							$h = ",o".$i.".id `id_".$col."` ".

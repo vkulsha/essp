@@ -802,6 +802,7 @@ function JsTable (queryJson, opts, container) {
 				var filter = that.filter.get();
 				if (!filter) return;
 				filter.clearFilters.get();
+				//that.refreshTable.get();				
 				location.reload();
 				//that.filter.get().clearFilters.get();
 				//that.queryWhere.set("");

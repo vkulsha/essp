@@ -38,7 +38,6 @@
 			var p = objectlink.gOrm("gAnd",[[classes["Пароли пользователей"]],"id",false,"and n='"+password+"'"]);
 			if (u && p && u.length && p.length){
 				var key = objectlink.gOrm("gAnd", [[u[0][0], p[0][0], classes["Ключи доступа пользователей"]]]);
-				console.log(p[0][0]);
 				if (key && key.length){
 					gDom("mainContainer").hidden = true;
 				}
@@ -154,7 +153,9 @@
 		var fields = ["Базовая станция","БС адрес","Владелец","Договор","Тип договора","Заказчик","Счет","Движение счета",
 					"Акт выполненных работ","КС-2,3","Счет-фактура","Комментарий к договору"];
 		var sel = objectlink.gOrm("gTq2",[fields,[[4,3],[5,3],[6,3],[7,6],[8,3],[9,3],[10,3],[11,3]],[],0]);
+		//sel = "select " + arroundArr(fields, "case when instr(`$`, ';') > 0 then left(`$`, instr(`$`, ';')-1) else `$` end `$`") + " from ("+sel+")x ";
 		sel = "select "+decorateArr(fields, "`").join(",")+" from ("+sel+")x where `Владелец` is not null ";
+		//console.log(sel)
 		var query = { select:sel, where:"", order:""	};
 		var colors = undefined;
 		var tbHeight = windowHeight() * (380/699);
@@ -205,10 +206,9 @@
 		tbMenu.setAttribute("cellpadding", 10);
 		var trMenu = cDom("TR", null, tbMenu);
 		var menuArr = [
-		{"img":"images/mts.png","caption":"Движение Р1/Р2 (МТС)","frm":frmContainerMenu1},
-		{"img":"images/bCard.png","caption":"Движение документов заказчиков","frm":frmContainerMenu2},
-		{"img":"images/arendator.png","caption":"Справочник организаций (заказчиков)","frm":frmContainerMenu3},
-//		{"img":"images/bCadastr.png","caption":"Справочник базовых станций","frm":frmContainerMenu4},
+		{"img":"images/mts.png","caption":"Работа с МТС (Р1/Р2)","frm":frmContainerMenu1},
+		{"img":"images/bCard.png","caption":"Работа с другими заказчиками","frm":frmContainerMenu2},
+		{"img":"images/arendator.png","caption":"Справочник организаций","frm":frmContainerMenu3},
 		];
 		
 		for (var i=0; i < menuArr.length; i++) {
