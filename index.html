@@ -151,28 +151,30 @@
 		var jsTable = new JsTable(query, opts, container1);
 		frmContainerMenu1.top = "100px";
 ///table2
-		var fields = ["БС","БС адрес","БС вид работ"];
-		var sel = objectlink.gOrm("gTq2",[fields,[],[],0]);
-		sel = " select f1, f2, f3, f4, f5, f6, f7, f8, f9, f10 from ("+
-		"select 1010 `f1`,'ООО РБ' `f2`,'ТЭС' `f3`,null `f4`,null `f5`,null `f6`,null `f7`,null `f8`,null `f9`,null `f10` )x where 1=1 ";
+		var fields = ["Базовая станция","БС адрес","Владелец","Договор","Тип договора","Заказчик","Счет","Движение счета",
+					"Акт выполненных работ","КС-2,3","Счет-фактура","Комментарий к договору"];
+		var sel = objectlink.gOrm("gTq2",[fields,[[4,3],[5,3],[6,3],[7,6],[8,3],[9,3],[10,3],[11,3]],[],0]);
+		sel = "select "+decorateArr(fields, "`").join(",")+" from ("+sel+")x where `Владелец` is not null ";
 		var query = { select:sel, where:"", order:""	};
 		var colors = undefined;
 		var tbHeight = windowHeight() * (380/699);
-
+		
 		var colsOpts = [
-			new Column({'id' : 0,  'name' : 'f1', 'caption' : 'БС', 'width' : 70}),
-			new Column({'id' : 1,  'name' : 'f2', 'caption' : 'Опора', 'width' : 100}),
-			
-			new Column({'id' : 2,  'name' : 'f3', 'caption' : 'Подрядчик', 'width' : 100}),
-			new Column({'id' : 3,  'name' : 'f4', 'caption' : 'Договор ПИР', 'width' : 100}),
-			new Column({'id' : 4,  'name' : 'f5', 'caption' : 'Договор СМР', 'width' : 100}),
-			new Column({'id' : 5,  'name' : 'f6', 'caption' : 'Счет ПИР', 'width' : 100}),
-			new Column({'id' : 6,  'name' : 'f7', 'caption' : 'Счет СМР', 'width' : 100}),
-			new Column({'id' : 7,  'name' : 'f8', 'caption' : 'КЗД', 'width' : 100}),
-			new Column({'id' : 8,  'name' : 'f9', 'caption' : 'Счет-фактура', 'width' : 100}),
-			new Column({'id' : 9,  'name' : 'f10', 'caption' : 'Комментарий', 'width' : 100}),
+			new Column({'id' : 0,  'name' : 'Базовая станция', 'caption' : 'БС', 'width' : 70}),
+			new Column({'id' : 1,  'name' : 'БС адрес', 'caption' : 'Адрес', 'width' : 200}),
+			new Column({'id' : 2,  'name' : 'Владелец', 'caption' : 'Опора', 'width' : 100}),
+			new Column({'id' : 3,  'name' : 'Договор', 'caption' : 'Договор', 'width' : 100}),
+			new Column({'id' : 4,  'name' : 'Тип договора', 'caption' : 'ПИР/СМР', 'width' : 100}),
+			new Column({'id' : 5,  'name' : 'Заказчик', 'caption' : 'Заказчик', 'width' : 100}),
+			new Column({'id' : 6,  'name' : 'Счет', 'caption' : 'Счет', 'width' : 100}),
+			new Column({'id' : 7,  'name' : 'Движение счета', 'caption' : 'Статус счета', 'width' : 100}),
+			new Column({'id' : 8,  'name' : 'Акт выполненных работ', 'caption' : 'Акт выполненных работ', 'width' : 100}),
+			new Column({'id' : 9,  'name' : 'КС-2,3', 'caption' : 'КС-2,3', 'width' : 100}),
+			new Column({'id' : 10,  'name' : 'Счет-фактура', 'caption' : 'С/ф', 'width' : 100}),
+			new Column({'id' : 11,  'name' : 'Комментарий к договору', 'caption' : 'Комментарий', 'width' : 300}),
 		];
-		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,4,5,6,7,8,9]};
+		
+		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,6,8,9,10]};
 		
 		var frmContainerMenu2 = new TForm();
 		var container2 = cDom("DIV");
@@ -181,79 +183,195 @@
 		var jsTable2 = new JsTable(query, opts, container2);
 		//console.log(query);
 		frmContainerMenu2.top = "100px";
-		
+
+///table3
+		var fields = ["Организации","Полное наименование организации"];
+		var sel = objectlink.gOrm("gTq2",[fields,[],[],0]);
+		sel = "select "+decorateArr(fields, "`").join(",")+" from ("+sel+")x where true ";
+		var query = { select:sel, where:"", order:""	};
+		var colors = undefined;
+		var colsOpts = undefined;
+		var tbHeight = windowHeight() * (380/699);
+		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [0]};
+		var frmContainerMenu3 = new TForm();
+		var container3 = cDom("DIV");
+		frmContainerMenu3.body = container3;
+		var jsTable3 = new JsTable(query, opts, container3);
+		frmContainerMenu3.top = "100px";
+
 ///main menu
 		var containerMenu = document.getElementsByClassName("jsTableContainer")[0];
 		var tbMenu = cDom("TABLE", null, containerMenu);
 		tbMenu.setAttribute("cellpadding", 10);
 		var trMenu = cDom("TR", null, tbMenu);
-///menu1
-		var tdMenu = cDom("TD", null, trMenu);
-		var but = tdMenu.appendChild(cDom("TD"));
-		var tb = cDom("TABLE", null, but);
-		var tr = cDom("TR", null, tb);
-		var td = cDom("TD", null, tr);
-		var img = td.appendChild(cDom("IMG"));
-		var tr = cDom("TR", null, tb);
-		var td = cDom("TD", null, tr);
-		var lab = td.appendChild(cDom("LABEL"));
-
-		tdMenu.setAttribute("align","center");
-		but.classList.add("menubutton");
-		but.style.width = "200px";
-		but.style.height = "180px";
-		img.src = "images/mts.png";
-		img.style.height = "130px";
-		img.style.width= "auto";
-		lab.innerHTML = "Движение Р1/Р2 (МТС)";
-		but.onclick = function(){
-			frmContainerMenu1.visible = true;
-		}
-///menu2		
-		var tdMenu = cDom("TD", null, trMenu);
-		var but = tdMenu.appendChild(cDom("TD"));
-		var tb = cDom("TABLE", null, but);
-		var tr = cDom("TR", null, tb);
-		var td = cDom("TD", null, tr);
-		var img = td.appendChild(cDom("IMG"));
-		var tr = cDom("TR", null, tb);
-		var td = cDom("TD", null, tr);
-		var lab = td.appendChild(cDom("LABEL"));
-
-		tdMenu.setAttribute("align","center");
-		but.classList.add("menubutton");
-		but.style.width = "200px";
-		but.style.height = "180px";
-		img.src = "images/bCard.png";
-		img.style.height = "130px";
-		img.style.width= "auto";
-		lab.innerHTML = "Документы подрядчиков";
-		but.onclick = function(){
-			frmContainerMenu2.visible = true;
-		}
+		var menuArr = [
+		{"img":"images/mts.png","caption":"Движение Р1/Р2 (МТС)","frm":frmContainerMenu1},
+		{"img":"images/bCard.png","caption":"Движение документов заказчиков","frm":frmContainerMenu2},
+		{"img":"images/arendator.png","caption":"Справочник организаций (заказчиков)","frm":frmContainerMenu3},
+//		{"img":"images/bCadastr.png","caption":"Справочник базовых станций","frm":frmContainerMenu4},
+		];
 		
+		for (var i=0; i < menuArr.length; i++) {
+			var tdMenu = cDom("TD", null, trMenu);
+			var but = tdMenu.appendChild(cDom("TD"));
+			var tb = cDom("TABLE", null, but);
+			var tr = cDom("TR", null, tb);
+			var td = cDom("TD", null, tr);
+			var img = td.appendChild(cDom("IMG"));
+			var tr = cDom("TR", null, tb);
+			var td = cDom("TD", null, tr);
+			var lab = td.appendChild(cDom("LABEL"));
+
+			tdMenu.setAttribute("align","center");
+			but.classList.add("menubutton");
+			but.style.width = "200px";
+			but.style.height = "180px";
+			img.src = menuArr[i].img;
+			img.style.height = "130px";
+			img.style.width= "auto";
+			lab.innerHTML = menuArr[i].caption;
+			but.frm = menuArr[i].frm;
+			but.onclick = function(){
+				this.frm.visible = true;
+			}
+		}
 ////
 
 		var frmCreateBs = new TForm();
 		var frmCreateZakaz = new TForm();
+		var frmCreateOrg = new TForm();
+		var frmCreateBs2 = new TForm();
+		var frmCreateDog = new TForm();
+		var frmCreateaZakOrg = new TForm();
 		
-		but1 = document.createElement("BUTTON");
+		var but1 = document.createElement("BUTTON");
 		but1.innerHTML = "Добавить БС";
 		but1.onclick = function(){
 			var res = getCard(["БС","БС номер","Стандарты БС","БС адрес","БС вид работ"],
 			["hidden","edit","checkbox","edit","combobox"],[1,2],null,null, true);
-			
 			//var res = createFieldsCard(
 			//	["БС","БС номер","БС адрес","БС вид работ"],
 			//	["hidden","edit","edit","combo"],[1,2],null,null, true, frmCreateBs, jsTable);
-			
 			frmCreateBs.body = res;
 			frmCreateBs.top = "100px";
 			frmCreateBs.visible = true;
-			//showModalHtml(res, true);
-			
 		}
 		addToTable(jsTable, but1);
+
+		var butAddBs2 = document.createElement("BUTTON");
+		butAddBs2.innerHTML = "Добавить БС";
+		butAddBs2.onclick = function(){
+			var res = createFieldsCard(
+				["Базовая станция","БС номер","БС адрес","Владелец"],
+				["hidden","edit","edit","combo"],[1],null,null, true, frmCreateBs2, jsTable2);
+			
+			frmCreateBs2.body = res;
+			frmCreateBs2.top = "100px";
+			frmCreateBs2.visible = true;
+		}
+		addToTable(jsTable2, butAddBs2);
+		var addDog = function(that){
+			switch (that.col) {
+				case 3: //Договор
+					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][0], null, null, classes["Базовая станция"]]);
+					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
+					var res = createFieldsCard(
+						["Договор","№ договора","Дата договора","Тип договора","Вид работ по договору","Предмет договора","Заказчик","Комментарий к договору"],
+						["hidden","edit","date","combo","combo","edit","combo","memo"],[1],id,pid, true, frmCreateDog, jsTable2);
+					
+					frmCreateDog.body = res;
+					frmCreateDog.top = "100px";
+					frmCreateDog.visible = true;
+				break;
+				case 5: //Заказчик
+					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
+					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][5], null, null, classes["Заказчик"]]);
+					var res = createFieldsCard(
+						["Заказчик","Организации"],
+						["hidden","combo"],[1],id,pid, true, frmCreateaZakOrg, jsTable2);
+					
+					frmCreateaZakOrg.body = res;
+					frmCreateaZakOrg.top = "100px";
+					frmCreateaZakOrg.visible = true;
+				break;
+				case 6: //Счет
+					var frm = new TForm();
+					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
+					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][6], null, null, classes["Счет"]]);
+					var res = createFieldsCard(
+						["Счет","№ счета","Дата счета","Движение счета"],
+						["hidden","edit","date","memo"],[1],id,pid, true, frm, jsTable2);
+					
+					frm.body = res;
+					frm.top = "100px";
+					frm.visible = true;
+				break;
+				case 8: //Акт
+					var frm = new TForm();
+					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
+					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][8], null, null, classes["Акт выполненных работ"]]);
+					var res = createFieldsCard(
+						["Акт выполненных работ","№ акта","Дата акта","Комментарий к акту"],
+						["hidden","edit","date","memo"],[1],id,pid, true, frm, jsTable2);
+					
+					frm.body = res;
+					frm.top = "100px";
+					frm.visible = true;
+				break;
+				case 9: //Акт
+					var frm = new TForm();
+					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
+					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][9], null, null, classes["КС-2,3"]]);
+					var res = createFieldsCard(
+						["КС-2,3","№ КС","Дата КС","Комментарий к КС"],
+						["hidden","edit","date","memo"],[1],id,pid, true, frm, jsTable2);
+					
+					frm.body = res;
+					frm.top = "100px";
+					frm.visible = true;
+				break;
+				case 10: //Акт
+					var frm = new TForm();
+					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
+					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][10], null, null, classes["Счет-фактура"]]);
+					var res = createFieldsCard(
+						["Счет-фактура","№ счет-фактуры","Дата счет-фактуры","Комментарий к счет-фактуре"],
+						["hidden","edit","date","memo"],[1],id,pid, true, frm, jsTable2);
+					
+					frm.body = res;
+					frm.top = "100px";
+					frm.visible = true;
+				break;
+			}
+			
+		}
+		jsTable2.cols2ButtonClick.set(addDog);
+		
+		
+		var but2 = document.createElement("BUTTON");
+		but2.innerHTML = "Добавить организацию";
+		
+		var addOrgFunc = function(id){
+			var res = createFieldsCard(
+				["Организации","Краткое наименование организации","Полное наименование организации","Юридический адрес","Фактический адрес","Рассчетный счет","Корр.счет","БИК","Наименование банка",
+				"ОКПО","ИНН","КПП","Должность руководителя-подписанта","ФИО руководителя-подписанта","Документ-основание действий руководителя-подписанта"],
+				["hidden","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit"],[1],id,null, true, frmCreateOrg, jsTable3);
+			
+			frmCreateOrg.body = res;
+			frmCreateOrg.top = "100px";
+			frmCreateOrg.visible = true;
+		}
+		
+		but2.onclick = function(){
+			addOrgFunc(null);
+		}
+		addToTable(jsTable3, but2);
+
+		var addOrg = function(that){
+			var id = objectlink.gOrm("gO", [jsTable3.rows.get()[that.row][0], null, null, classes["Организации"]]);
+			addOrgFunc(id);
+		}
+		jsTable3.cols2ButtonClick.set(addOrg);
 		
 		function modalClose(refresh, frm) {
 			modal.style.display = "none";
@@ -261,77 +379,16 @@
 			jsTable.refreshTable.get();
 		
 		}
-
-		function getCard(fields, fieldsT, parentValLinked, mainObjId, parentObjectId, bSaveVisible) {
-			var tb = cDom("TABLE");
-			var fields_ = [];
-			var f0;
-			
-			var values = mainObjId ? objectlink.gOrm("gT2",[fields, [],[],false,decorateArr(fields,"`"),"and `id_"+fields[0]+"`="+mainObjId+
-			" order by "+decorateArr(fields, "`d_", "` desc").join(",")+
-			" limit 1", true]) : [];
-			for (var i=0; i < fields.length; i++) {
-				var val = values && values.length ? values[0][i] : undefined;
-				var field = getFieldHtml(fields[i], fieldsT[i], val);
-				fields_.push(field);
-				if (i==0) {
-					field.linked = []
-					field.pid = parentObjectId;
-					field.linked0 = ( parentValLinked && parentValLinked.length && parentValLinked.indexOf(0) >= 0 );
-				} else if ( parentValLinked && parentValLinked.length && parentValLinked.indexOf(i) >= 0 ) {
-					fields_[0].linked.push(fields_[i])
-				};
-				tb.appendChild(field);
-			}
-
-			var tr = tb.appendChild(cDom("TR"));
-			tr.style.height = "10px";
-			var td = tr.appendChild(cDom("TD"));
-			var td = tr.appendChild(cDom("TD"));
-			
-			var tr = tb.appendChild(cDom("TR"));
-			var td = tr.appendChild(cDom("TD"));
-			var td = tr.appendChild(cDom("TD"));
-
-			tb.fields = fields_;
-			tb.parentObjectId = parentObjectId;
-			tb.mainObjId = mainObjId;
-			tb.funcSave = function(){
-				var fields = this.fields;
-				var pid;
-				for (var i=0; i < fields.length; i++) {
-					var field = fields[i];
-					if (!field.pid) field.pid = pid;
-					var oid = saveField(field);
-					if (field.ft == "hidden") {
-						pid = oid;
-						this.mainObjId = oid;
-						//console.log(oid);
-					}
-				}
-			};
-			
-			if (bSaveVisible) {
-				var but = td.appendChild(cDom("BUTTON"));
-				but.innerHTML = "Сохранить";
-				but.onclick = function(){
-					tb.funcSave();
-					modalClose(true, frmCreateBs);
-				};
-			}
-			
-			return tb;
-		}		
 		
 		var rows = jsTable.rows.get();
 		var cellDblClickFunc = function(){
 		};
 		jsTable.cellDblClickFunc.set(cellDblClickFunc);
-		
+
 		var bclick = function(that){
 			var zak_type = that.col == 3 ? "ПИР" : "СМР";
 			//var bsid = objectlink.gOrm("getObjectFromClass", [classes["БС"], jsTable.rows.get()[that.row][0]])[0][0];
-			var bsid = objectlink.gOrm("gO", [jsTable.rows.get()[that.row][0]], null, null, classes["БС"]);
+			var bsid = objectlink.gOrm("gO", [jsTable.rows.get()[that.row][0], null, null, classes["БС"]]);
 			var zak_id = objectlink.gOrm("gT2",[["Заказы "+zak_type,"БС"],[],[],false,
 				null,"and `id_БС` = "+bsid," order by `id_Заказы "+zak_type+"` desc limit 1"]);
 			if (zak_id && zak_id.length) {
@@ -438,6 +495,67 @@
 		}
 		
 		jsTable.cols2ButtonClick.set(bclick);
+
+		function getCard(fields, fieldsT, parentValLinked, mainObjId, parentObjectId, bSaveVisible) {
+			var tb = cDom("TABLE");
+			var fields_ = [];
+			var f0;
+			
+			var values = mainObjId ? objectlink.gOrm("gT2",[fields, [],[],false,decorateArr(fields,"`"),"and `id_"+fields[0]+"`="+mainObjId+
+			" order by "+decorateArr(fields, "`d_", "` desc").join(",")+
+			" limit 1", true]) : [];
+			for (var i=0; i < fields.length; i++) {
+				var val = values && values.length ? values[0][i] : undefined;
+				var field = getFieldHtml(fields[i], fieldsT[i], val);
+				fields_.push(field);
+				if (i==0) {
+					field.linked = []
+					field.pid = parentObjectId;
+					field.linked0 = ( parentValLinked && parentValLinked.length && parentValLinked.indexOf(0) >= 0 );
+				} else if ( parentValLinked && parentValLinked.length && parentValLinked.indexOf(i) >= 0 ) {
+					fields_[0].linked.push(fields_[i])
+				};
+				tb.appendChild(field);
+			}
+
+			var tr = tb.appendChild(cDom("TR"));
+			tr.style.height = "10px";
+			var td = tr.appendChild(cDom("TD"));
+			var td = tr.appendChild(cDom("TD"));
+			
+			var tr = tb.appendChild(cDom("TR"));
+			var td = tr.appendChild(cDom("TD"));
+			var td = tr.appendChild(cDom("TD"));
+
+			tb.fields = fields_;
+			tb.parentObjectId = parentObjectId;
+			tb.mainObjId = mainObjId;
+			tb.funcSave = function(){
+				var fields = this.fields;
+				var pid;
+				for (var i=0; i < fields.length; i++) {
+					var field = fields[i];
+					if (!field.pid) field.pid = pid;
+					var oid = saveField(field);
+					if (field.ft == "hidden") {
+						pid = oid;
+						this.mainObjId = oid;
+						//console.log(oid);
+					}
+				}
+			};
+			
+			if (bSaveVisible) {
+				var but = td.appendChild(cDom("BUTTON"));
+				but.innerHTML = "Сохранить";
+				but.onclick = function(){
+					tb.funcSave();
+					modalClose(true, frmCreateBs);
+				};
+			}
+			
+			return tb;
+		}		
 		
 	})
 </script>

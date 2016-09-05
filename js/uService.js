@@ -1856,6 +1856,40 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 				var td = tr.appendChild(cDom("TD"));
 				td.style.borderBottom = "1px solid #c4baa5";
 				td.innerHTML = fields[i];
+				
+				if (fieldsT[i] == "combo") {
+					$(td).append("&nbsp;&nbsp;");
+					var but = td.appendChild(cDom("BUTTON"));
+					but.innerHTML = "+";
+					var child = objectlink.gOrm("gAnd", [[classes[fields[i]]],null,null,null,false,true]);
+					var arr = [fields[i]];
+					var arrT = ["hidden"];
+					for (var j=0; j < child.length; j++) {
+						var cn = child[j][1];
+						arr.push(cn);
+						var _child = objectlink.gOrm("gAnd", [[classes[cn]],null,null,null,false,true]);
+						if (!_child || !_child.length) {
+							arrT.push("edit");
+						} else {
+							arrT.push("combo");
+						} 
+					}
+					but.linkedFields = arr;
+					but.linkedFieldsT = arrT;
+					but.onclick = function(){
+						var frm = new TForm();
+						var fields = this.linkedFields;
+						var fieldsT = this.linkedFieldsT;
+						if (fields && fields.length>1) {
+							var res = createFieldsCard(fields,fieldsT,[1],null,null, true, frm);
+							frm.body = res;
+							frm.top = "100px";
+							frm.visible = true;
+						}
+					}
+				}
+
+
 				var td = tr.appendChild(cDom("TD"));
 				td.style.borderBottom = "1px solid #c4baa5";
 				

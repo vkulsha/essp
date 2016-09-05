@@ -525,8 +525,10 @@ function JsTable (queryJson, opts, container) {
 						but.col = j;
 						but.row = i;
 						but.onclick = function(){that.cols2ButtonClick.get()(this)};
+						div.innerHTML = "";
+						div.appendChild(but);
 					}
-					cell.appendChild(but || div);
+					cell.appendChild(div);
 					row.appendChild(cell);
 				}
 				if (color) {
