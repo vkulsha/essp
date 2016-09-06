@@ -161,21 +161,21 @@
 		var tbHeight = windowHeight() * (380/699);
 		
 		var colsOpts = [
-			new Column({'id' : 0,  'name' : 'Базовая станция', 'caption' : 'БС', 'width' : 70}),
-			new Column({'id' : 1,  'name' : 'БС адрес', 'caption' : 'Адрес', 'width' : 200}),
-			new Column({'id' : 2,  'name' : 'Владелец', 'caption' : 'Опора', 'width' : 100}),
-			new Column({'id' : 3,  'name' : 'Договор', 'caption' : 'Договор', 'width' : 100}),
-			new Column({'id' : 4,  'name' : 'Тип договора', 'caption' : 'ПИР/СМР', 'width' : 100}),
-			new Column({'id' : 5,  'name' : 'Заказчик', 'caption' : 'Заказчик', 'width' : 100}),
-			new Column({'id' : 6,  'name' : 'Счет', 'caption' : 'Счет', 'width' : 100}),
-			new Column({'id' : 7,  'name' : 'Движение счета', 'caption' : 'Статус счета', 'width' : 100}),
-			new Column({'id' : 8,  'name' : 'Акт выполненных работ', 'caption' : 'Акт выполненных работ', 'width' : 100}),
-			new Column({'id' : 9,  'name' : 'КС-2,3', 'caption' : 'КС-2,3', 'width' : 100}),
+			new Column({'id' : 0,   'name' : 'Базовая станция', 'caption' : 'БС', 'width' : 70}),
+			new Column({'id' : 1,   'name' : 'БС адрес', 'caption' : 'Адрес', 'width' : 200}),
+			new Column({'id' : 2,   'name' : 'Владелец', 'caption' : 'Опора', 'width' : 100}),
+			new Column({'id' : 3,   'name' : 'Договор', 'caption' : 'Договор', 'width' : 100}),
+			new Column({'id' : 4,   'name' : 'Тип договора', 'caption' : 'ПИР/СМР', 'width' : 100}),
+			new Column({'id' : 5,   'name' : 'Заказчик', 'caption' : 'Заказчик', 'width' : 100}),
+			new Column({'id' : 6,   'name' : 'Счет', 'caption' : 'Счет', 'width' : 100}),
+			new Column({'id' : 7,   'name' : 'Движение счета', 'caption' : 'Статус счета', 'width' : 100}),
+			new Column({'id' : 8,   'name' : 'Акт выполненных работ', 'caption' : 'Акт выполненных работ', 'width' : 100}),
+			new Column({'id' : 9,   'name' : 'КС-2,3', 'caption' : 'КС-2,3', 'width' : 100}),
 			new Column({'id' : 10,  'name' : 'Счет-фактура', 'caption' : 'С/ф', 'width' : 100}),
 			new Column({'id' : 11,  'name' : 'Комментарий к договору', 'caption' : 'Комментарий', 'width' : 300}),
 		];
 		
-		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,6,8,9,10]};
+		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,6,8,9,10]/*,cols2ButtonFile: [3,8]*/};
 		
 		var frmContainerMenu2 = new TForm();
 		var container2 = cDom("DIV");
@@ -206,9 +206,9 @@
 		tbMenu.setAttribute("cellpadding", 10);
 		var trMenu = cDom("TR", null, tbMenu);
 		var menuArr = [
-		{"img":"images/mts.png","caption":"Работа с МТС (Р1/Р2)","frm":frmContainerMenu1},
-		{"img":"images/bCard.png","caption":"Работа с другими заказчиками","frm":frmContainerMenu2},
-		{"img":"images/arendator.png","caption":"Справочник организаций","frm":frmContainerMenu3},
+			{"img":"images/mts.png","caption":"Работа с МТС (Р1/Р2)","frm":frmContainerMenu1},
+			{"img":"images/bCard.png","caption":"Работа с другими заказчиками","frm":frmContainerMenu2},
+			{"img":"images/arendator.png","caption":"Справочник организаций","frm":frmContainerMenu3},
 		];
 		
 		for (var i=0; i < menuArr.length; i++) {
@@ -239,10 +239,6 @@
 
 		var frmCreateBs = new TForm();
 		var frmCreateZakaz = new TForm();
-		var frmCreateOrg = new TForm();
-		var frmCreateBs2 = new TForm();
-		var frmCreateDog = new TForm();
-		var frmCreateaZakOrg = new TForm();
 		
 		var but1 = document.createElement("BUTTON");
 		but1.innerHTML = "Добавить БС";
@@ -261,38 +257,128 @@
 		var butAddBs2 = document.createElement("BUTTON");
 		butAddBs2.innerHTML = "Добавить БС";
 		butAddBs2.onclick = function(){
+			var frm = new TForm();
 			var res = createFieldsCard(
 				["Базовая станция","БС номер","БС адрес","Владелец"],
-				["hidden","edit","edit","combo"],[1],null,null, true, frmCreateBs2, jsTable2);
+				["hidden","edit","edit","combo"],[1],null,null, true, frm, jsTable2);
 			
-			frmCreateBs2.body = res;
-			frmCreateBs2.top = "100px";
-			frmCreateBs2.visible = true;
+			frm.body = res;
+			frm.top = "100px";
+			frm.visible = true;
 		}
 		addToTable(jsTable2, butAddBs2);
+		
+		var getReport = function(type, bsid, dogid, actid){
+			bs = objectlink.gOrm("gT2",[["Базовая станция","БС номер","БС адрес","Владелец"],[],[],false,null,"and `id_Базовая станция`="+bsid]);
+			var dog = objectlink.gOrm("gT2",[["Договор","№ договора","Дата договора","Заказчик","Организации"],[[4,3]],[],false,null,"and `id_Договор`="+dogid]);
+			var orgid = dog[0][8];
+			var org = objectlink.gOrm("gT2",[["Организации","Краткое наименование организации","Полное наименование организации",
+				"Юридический адрес","Фактический адрес","Рассчетный счет","Корр.счет","БИК","Наименование банка","ОКПО","ИНН","КПП",
+				"ОГРН","Должность руководителя-подписанта","ФИО руководителя-подписанта",
+				"Документ-основание действий руководителя-подписанта"],
+				[],[],false,null,"and `id_Организации`="+orgid]);
+			
+			if (actid)
+				var act = objectlink.gOrm("gT2",[["Акт выполненных работ","№ акта","Дата акта"],[],[],false,null,"and `id_Акт выполненных работ`="+actid]);
+			
+			var sfio = org ? org[0][29].split(" ") : [""];
+			
+			if (sfio.length == 1) {
+				sfio.push("");
+				sfio.push("");
+			} else {
+				sfio.push("");
+			}
+			
+			var orgName = org ? org[0][5] : "";
+			var orgAddressUr = org ? org[0][7] : "";
+			var orgAddressFact = org ? org[0][9] : "";
+			var orgChAcc = org ? org[0][11] : "";
+			var orgBank = org ? org[0][17] : "";
+			var orgCorrAcc = org ? org[0][13] : "";
+			var orgBIK = org ? org[0][15] : "";
+			var orgOKPO = org ? org[0][19] : "";
+			var orgINN = org ? org[0][21] : "";
+			var orgKPP = org ? org[0][23] : "";
+			var orgOGRN = org ? org[0][25] : "";
+			var orgManagerDolg = org ? org[0][27] : "";
+			var orgManagerFIO = org ? org[0][29] : "";
+			var orgManagerSFIO = sfio[0] + " " + sfio[1].substring(0,1) + "." + sfio[2].substring(0,1) + "."; 
+			var orgManagerDoc = org ? org[0][31] : "";
+			var bsNum = bs ? bs[0][3] : "";
+			var bsAddress = bs ? bs[0][5] : "";
+			var bsOwner = bs ? bs[0][7] : "";
+			var dogNum = dog ? dog[0][3] : "";
+			var dogDate = dog ? dog[0][5] : "";
+			var actDate = act ? act[0][5] : "";
+
+			var params = "" +
+			"&orgName="+orgName+
+			"&orgAddressUr="+orgAddressUr+
+			"&orgAddressFact="+orgAddressFact+
+			"&orgChAcc="+orgChAcc+
+			"&orgBank="+orgBank+
+			"&orgCorrAcc="+orgCorrAcc+
+			"&orgBIK="+orgBIK+
+			"&orgOKPO="+orgOKPO+
+			"&orgINN="+orgINN+
+			"&orgKPP="+orgKPP+
+			"&orgOGRN="+orgOGRN+
+			"&orgManagerDolg="+orgManagerDolg+
+			"&orgManagerFIO="+orgManagerFIO+
+			"&orgManagerSFIO="+orgManagerSFIO+
+			"&orgManagerDoc="+orgManagerDoc+
+			"&bsAddress="+bsAddress+
+			"&bsNum="+bsNum+
+			"&bsOwner="+bsOwner+
+			"&dogNum="+dogNum+
+			"&dogDate="+dogDate+
+			"&actDate="+actDate+
+			"";
+			
+			openWindow("docTemplate.php?fn="+type+params);
+		}
+		
+		var getReportCardDom = function(cnt, type, bsid, dogid, actid){
+			var tr = cnt.appendChild(cDom("TR"));
+			var td = tr.appendChild(cDom("TD"));
+			var but = td.appendChild(cDom("BUTTON"));
+			var img = but.appendChild(cDom("IMG"));
+			img.style.width = "32px";
+			img.src = "images/word.png";
+			but.title = "Выгрузить типовой договор/акт";
+			but.onclick = function(){
+				getReport(type, bsid, dogid, actid);
+			}
+		}
+		
 		var addDog = function(that){
 			switch (that.col) {
 				case 3: //Договор
+					var frm = new TForm();
 					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][0], null, null, classes["Базовая станция"]]);
 					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
 					var res = createFieldsCard(
 						["Договор","№ договора","Дата договора","Тип договора","Вид работ по договору","Предмет договора","Заказчик","Комментарий к договору"],
-						["hidden","edit","date","combo","combo","edit","combo","memo"],[1],id,pid, true, frmCreateDog, jsTable2);
+						["hidden","edit","date","combo","combo","edit","combo","memo"],[1],id,pid, true, frm, jsTable2);
+						
+					getReportCardDom(res, "dog", pid, id);
 					
-					frmCreateDog.body = res;
-					frmCreateDog.top = "100px";
-					frmCreateDog.visible = true;
+					frm.body = res;
+					frm.top = "100px";
+					frm.visible = true;
 				break;
 				case 5: //Заказчик
+					var frm = new TForm();
 					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
 					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][5], null, null, classes["Заказчик"]]);
 					var res = createFieldsCard(
 						["Заказчик","Организации"],
-						["hidden","combo"],[1],id,pid, true, frmCreateaZakOrg, jsTable2);
+						["hidden","combo"],[1],id,pid, true, frm, jsTable2);
 					
-					frmCreateaZakOrg.body = res;
-					frmCreateaZakOrg.top = "100px";
-					frmCreateaZakOrg.visible = true;
+					frm.body = res;
+					frm.top = "100px";
+					frm.visible = true;
 				break;
 				case 6: //Счет
 					var frm = new TForm();
@@ -308,12 +394,15 @@
 				break;
 				case 8: //Акт
 					var frm = new TForm();
+					var bsid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][0], null, null, classes["Базовая станция"]]);
 					var pid = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][3], null, null, classes["Договор"]]);
 					var id = objectlink.gOrm("gO", [jsTable2.rows.get()[that.row][8], null, null, classes["Акт выполненных работ"]]);
 					var res = createFieldsCard(
 						["Акт выполненных работ","№ акта","Дата акта","Комментарий к акту"],
 						["hidden","edit","date","memo"],[1],id,pid, true, frm, jsTable2);
 					
+					getReportCardDom(res, "act", bsid, pid, id);
+
 					frm.body = res;
 					frm.top = "100px";
 					frm.visible = true;
@@ -352,14 +441,15 @@
 		but2.innerHTML = "Добавить организацию";
 		
 		var addOrgFunc = function(id){
+			var frm = new TForm();
 			var res = createFieldsCard(
 				["Организации","Краткое наименование организации","Полное наименование организации","Юридический адрес","Фактический адрес","Рассчетный счет","Корр.счет","БИК","Наименование банка",
-				"ОКПО","ИНН","КПП","Должность руководителя-подписанта","ФИО руководителя-подписанта","Документ-основание действий руководителя-подписанта"],
-				["hidden","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit"],[1],id,null, true, frmCreateOrg, jsTable3);
+				"ОКПО","ИНН","КПП","ОГРН","Должность руководителя-подписанта","ФИО руководителя-подписанта","Документ-основание действий руководителя-подписанта"],
+				["hidden","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit","edit"],[1],id,null, true, frm, jsTable3);
 			
-			frmCreateOrg.body = res;
-			frmCreateOrg.top = "100px";
-			frmCreateOrg.visible = true;
+			frm.body = res;
+			frm.top = "100px";
+			frm.visible = true;
 		}
 		
 		but2.onclick = function(){

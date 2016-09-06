@@ -60,7 +60,7 @@ class ObjectLink {
 			if (!$lid) {
 				$ret = $this->sql->iT(["link", "o1, o2, u", "$o1,$o2,$u"]);  
 			} else {
-				$ret = $this->sql->uT(["link", "d = CURRENT_TIMESTAMP, u = $u", "and id = $lid"]);  
+				$ret = $this->sql->uT(["link", "d = CURRENT_TIMESTAMP, u = $u, c = 1", "and id = $lid"]);  
 			}
 			
 		} catch (Exception $e) {
@@ -101,6 +101,21 @@ class ObjectLink {
 		return $ret;
 	}
 
+	public function gL($params){//get link objects
+		try {
+			$o1 = $params[0];
+			$o2 = $params[1];
+			
+			$ret = $this->sql->sT(["link", "id", "and ((o1 = '$o1' and o2 = '$o2') or (o1 = '$o2' and o2 = '$o1')) ", "", ""]);
+			return $ret ? $ret[0][0] : null;
+			
+		} catch (Exception $e) {
+			print($e);
+			$ret = null;
+		}
+		return $ret;
+	}
+	
 	public function uO($params){//update object name by id
 		try {
 			$id = $params[0];
@@ -131,6 +146,21 @@ class ObjectLink {
 		return $ret;
 	}
 	
+	public function nL($params){//update link status
+		try {
+			$o1 = $params[0];
+			$o2 = $params[1];
+			
+			$ret = $this->sql->uT(["link", "c=0", "and ((o1=$o1 and o2=$o2) or (o2=$o1 and o1=$o2))"]);  
+			return $ret;
+			
+		} catch (Exception $e) {
+			print($e);
+			$ret = null;
+		}
+		return $ret;
+	}
+		
 	public function eL($params){//erase link from database
 		try {
 			$o1 = $params[0];
@@ -214,7 +244,7 @@ class ObjectLink {
 						$b = 
 							"from (\n".
 							"	select id, n from object where id in ( \n".
-							"		select o1 from link where o2 = ".$l." \n".
+							"		select o1 from link where c>0 and o2 = ".$l." \n".
 							($inClass ? "" : "and o1 not in (select o1 from link where o2 = 1) \n").
 							"	) \n".
 							"	group by id \n".
@@ -232,12 +262,12 @@ class ObjectLink {
 								",o".$i.".n `".$col."` ";
 						}
 						$l = $id ? $id : "(select id from object where n='".$col."' limit 1)";
-						$selecto1o2 = $plink ? "select o1 o2, o2 o1 from link where o2 in (" : "select o1, o2 from link where o1 in (";
+						$selecto1o2 = $plink ? "select o1 o2, o2 o1 from link where c>0 and o2 in (" : "select o1, o2 from link where c>0 and o1 in (";
 						$parentCol = $pcol ? $pcol : 0;
 						$b = 
 							"left join ( \n".
 							"	".$selecto1o2." \n".
-							"		select o1 from link where o2 = ".$l." \n".
+							"		select o1 from link where c>0 and o2 = ".$l." \n".
 							($inClass ? "" : "and o1 not in (select o1 from link where o2 = 1) \n").
 							"	) \n".
 							"	group by o1, o2 \n".
@@ -331,7 +361,7 @@ class ObjectLink {
 						$b = 
 							"from (\n".
 							"	select id, n from object where id in ( \n".
-							"		select o1 from link where o2 = ".$l." \n".
+							"		select o1 from link where c>0 and o2 = ".$l." \n".
 							($inClass ? "" : "and o1 not in (select o1 from link where o2 = 1) \n").
 							"	) \n".
 							"	group by id \n".
@@ -356,12 +386,12 @@ class ObjectLink {
 						$parentCol = $pcol ? $pcol : 0;
 						$b = 
 							"left join ( \n".
-							"	select o1, o2, d, c from link where o1 in ( \n".
+							"	select o1, o2, d, c from link where c>0 and o1 in ( \n".
 							"		select o1 from link where o2 = ".$l." \n".
 							($inClass ? "" : "and o1 not in (select o1 from link where o2 = 1) \n").
 							"	) \n".
 							" union all \n".
-							"	select o2, o1, d, c from link where o2 in ( \n".
+							"	select o2, o1, d, c from link where c>0 and o2 in ( \n".
 							"		select o1 from link where o2 = ".$l." \n".
 							($inClass ? "" : "and o1 not in (select o1 from link where o2 = 1) \n").
 							"	) \n".

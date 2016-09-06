@@ -1402,6 +1402,18 @@ function fillSelectDom(dom, values) {
 	}
 }
 
+function fillSelectDom2(dom, values) {
+	dom.innerHTML = "";
+	dom.appendChild(cDom("OPTION"));
+	for (var i=0; i < values.length; i++){
+		var opt = cDom("OPTION");
+		opt.innerHTML = values[i];
+		opt.value = values[i];
+		dom.appendChild(opt);
+	}
+}
+
+
 function d2str(d) {
 	var dt = d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0" + d.getDate()).slice(-2) + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2);
 	return dt
@@ -1803,6 +1815,7 @@ class TField {
 		this.parentField = parentField;
 		this.cnt = container && (container instanceof TContainer) ? container : cf.create("hidden", def);
 		this.value = def;
+		this.oldValue = def;
 	}
 	
 	get value() {
@@ -1814,6 +1827,14 @@ class TField {
 	
 	set value(val) {
 		this.cnt.value = val;
+	}
+	
+	get cnt() {
+		return this.cnt_;
+	}
+	
+	set cnt(val) {
+		this.cnt_ = val;
 	}
 	
 	get pid() {
@@ -1830,15 +1851,28 @@ class TField {
 	
 	save() {
 		var obj;
+		var oldObj;
 		var val = this.value;
-		if (this.cid) obj = objectlink.gOrm("gO", [val, null, null, this.cid]);
+		var oldVal = this.oldValue;
+		if (this.cid) {
+			obj = objectlink.gOrm("gO", [val, null, null, this.cid]);
+			oldObj = objectlink.gOrm("gO", [oldVal, null, null, this.cid]);
+		}
 		
 		if (obj) this.oid = obj
 		else if (val != "" && val != undefined) {
 			if (this.cid) this.oid = objectlink.gOrm("cO", [val, this.cid]);
 		} else this.oid = undefined;
 		
-		if (this.oid && this.pid) objectlink.gOrm("cL", [this.oid, this.pid]);
+		if (this.oid && this.pid) {
+			objectlink.gOrm("cL", [this.oid, this.pid]);
+			
+			if (this.oid != oldObj && this.oid && oldObj) {
+				objectlink.gOrm("nL", [oldObj, this.pid]);
+				//objectlink.gOrm("eL", [oldObj, this.pid]);
+				
+			}
+		};
 	}
 	
 	
@@ -1846,7 +1880,7 @@ class TField {
 }
 
 ////["Заказы ПИР", "Заказы дата подписания", "Заказы дата закрытия"]
-function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjId, parentField, bSaveFunc, frm, jsTable) {
+function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjId, parentField, bSaveFunc, frm, jsTable, refreshCombo) {
 			var tb = cDom("TABLE");
 			var fields_ = [];
 			var cntf = new TContainerFactory();
@@ -1884,6 +1918,8 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 					}
 					but.linkedFields = arr;
 					but.linkedFieldsT = arrT;
+					but.fieldIndex = i;
+					but.tbFields = tb;
 					but.onclick = function(){
 						var frm = new TForm();
 						var fields = this.linkedFields;
@@ -1895,14 +1931,15 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 								fields[0] = "Добавить новое значение";
 								fieldsT[0] = "hidden";
 							}
-							var res = createFieldsCard(fields,fieldsT,[1],null,null, true, frm);
+							var refreshCombo = this.tbFields.fields[this.fieldIndex].cnt.cnt.dom;
+							refreshCombo.refreshField = fields[1];
+							var res = createFieldsCard(fields,fieldsT,[1],null,null, true, frm, null, refreshCombo);
 							frm.body = res;
 							frm.top = "100px";
 							frm.visible = true;
 						}
 					}
 				}
-
 
 				var td = tr.appendChild(cDom("TD"));
 				td.style.borderBottom = "1px solid #c4baa5";
@@ -1962,6 +1999,16 @@ function createFieldsCard(fields, fieldsT, mainFieldValLinkedFieldNums, mainObjI
 			tb.funcSave = function(){
 				for (var i=0; i < fields.length; i++) {
 					this.fields[i].save();
+				}
+				if (refreshCombo && refreshCombo.refreshField) {
+					vals = objectlink.gOrm("gT2",[[refreshCombo.refreshField]]);
+					var arr = [];
+					for (var i=0; i < vals.length; i++) {
+						arr.push(vals[i][1]);
+					}
+					var val = refreshCombo.value;
+					fillSelectDom2(refreshCombo, arr);
+					refreshCombo.value = val;
 				}
 			};
 			

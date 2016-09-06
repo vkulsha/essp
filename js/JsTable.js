@@ -21,6 +21,8 @@ function JsTable (queryJson, opts, container) {
 		this.cellDblClickFunc = new GetSet("cellDblClickFunc", opts && opts.cellDblClickFunc ? opts.cellDblClickFunc : undefined);//ref
 		this.cols2Button = new GetSet("cols2Button", opts && opts.cols2Button ? opts.cols2Button : []);//ref
 		this.cols2ButtonClick = new GetSet("cols2ButtonClick", opts && opts.cols2ButtonClick ? opts.cols2ButtonClick : undefined);//ref
+		this.cols2ButtonFile = new GetSet("cols2ButtonFile", opts && opts.cols2ButtonFile ? opts.cols2ButtonFile : []);//ref
+		this.cols2ButtonFileClick = new GetSet("cols2ButtonFileClick", opts && opts.cols2ButtonFileClick ? opts.cols2ButtonFileClick : undefined);//ref
 		this.refreshTableMarker = new GetSet("refreshTableMarker", undefined);//val
 		this.refreshTable = new GetSet("refreshTable", null, function(){//obj
 			that.refreshTableMarker.set(""+(new Date()));
@@ -427,6 +429,7 @@ function JsTable (queryJson, opts, container) {
 			var rowsColOpt = that.rowsColorOpts.get();
 			var isColorOpt = (JSON.stringify(rowsColOpt) != "{}");
 			var cols2Button = that.cols2Button.get();
+			var cols2ButtonFile = that.cols2ButtonFile.get();
 
 			if (!columns || !rows || !result) return result;
 ///cell click			
@@ -442,12 +445,12 @@ function JsTable (queryJson, opts, container) {
 			}
 			
 			var cellOnFocus = function(e){
-				//this.classList.add("jsTableSelectedCell");
-				if (isColorOpt) return;
+				this.classList.add("jsTableSelectedCell");
+				//if (isColorOpt) return;
 				that.selectedCell.set(this);
 				this.style.backgroundColor = rgb(255, 228, 138);
 				$(this.domRow).find("td").each(function(){
-					//this.classList.add("jsTableSelectedRow");
+					this.classList.add("jsTableSelectedRow");
 					this.style.backgroundColor = rgb(255, 247, 217)
 
 				});
@@ -457,11 +460,11 @@ function JsTable (queryJson, opts, container) {
 			
 			var cellOnBlur = function(e){
 				color = "inherit"
-				if (isColorOpt) return;
+				//if (isColorOpt) return;
 				this.style.backgroundColor = color;
-				//this.classList.remove("jsTableSelectedCell");
+				this.classList.remove("jsTableSelectedCell");
 				$(this.domRow).find("td").each(function(){
-					//this.classList.remove("jsTableSelectedRow");
+					this.classList.remove("jsTableSelectedRow");
 					this.style.backgroundColor = color
 				});
 				this.setAttribute("readonly", true);
@@ -479,7 +482,9 @@ function JsTable (queryJson, opts, container) {
 					var div = document.createElement("DIV");
 					var inp = document.createElement("TEXTAREA");//
 					var isBut = cols2Button.indexOf(j) >= 0;//
+					var isButFile = cols2ButtonFile.indexOf(j) >= 0;//
 					var but = isBut ? document.createElement("BUTTON") : undefined;//
+					var butFile = isButFile ? document.createElement("BUTTON") : undefined;//
 					
 					cell.style.overflow = "hidden";
 					cell.style.width = columns[j]["width"];
@@ -520,12 +525,22 @@ function JsTable (queryJson, opts, container) {
 
 					//div.innerHTML = rows[i][j];
 					div.appendChild(inp);//
-					if (isBut)	{
+					if (isBut || isButFile) { div.innerHTML = ""; };
+					if (isButFile) {
+						var img = butFile.appendChild(cDom("IMG"));
+						img.style.width = "16px";
+						img.src = "images/file.png";
+						butFile.col = j;
+						butFile.row = i;
+						butFile.onclick = function(){that.cols2ButtonFileClick.get()(this)};
+						//div.innerHTML = "";
+						div.appendChild(butFile);
+					}
+					if (isBut) {
 						but.innerHTML = inp.innerHTML || "+";
 						but.col = j;
 						but.row = i;
 						but.onclick = function(){that.cols2ButtonClick.get()(this)};
-						div.innerHTML = "";
 						div.appendChild(but);
 					}
 					cell.appendChild(div);
@@ -802,11 +817,18 @@ function JsTable (queryJson, opts, container) {
 				var filter = that.filter.get();
 				if (!filter) return;
 				filter.clearFilters.get();
+				that.queryWhere.set("");
+				
+				var domHeadFilters = that.domHeadFilters.get();
+				for (var i=0; i < domHeadFilters.length; i++)
+					domHeadFilters[i].src = domain+"images/filter.png"
+				
+				//that.filter.get().columnsFilterAll.get();
+				//location.reload();
 				//that.refreshTable.get();				
-				location.reload();
 				//that.filter.get().clearFilters.get();
 				//that.queryWhere.set("");
-				//that.domButtonFilterDelShow.get();
+				that.domButtonFilterDelShow.get();
 			}
 			return result;
 		});
@@ -818,7 +840,7 @@ function JsTable (queryJson, opts, container) {
 			var filter = that.filter.get();
 			if (!container || !filter) return;
 			
-			var filterAll = filter.columnsFilterAll.get();
+			var filterAll = filter.columnsFilterAll.get() && that.queryWhere.get();
 			container.hidden = !filterAll;
 		});
 		this.domButtonFilterDelShow.listen([this.filter.get().columnsFilterAll]);//listen
