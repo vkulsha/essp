@@ -497,11 +497,11 @@
 			var cards = [];
 			var card1 = createFieldsCard(
 			["Заказы "+zak_type,"Заказы номер","Заказы дата подписания","Заказы дата закрытия","Заказы статус","Примечание"],
-			["hidden","edit","date","date","combo","memo"],[1],zak_id,bsid);
+			["hidden","edit","date","date","combo","memo"],null,zak_id,bsid);
 			
 			td_zak.appendChild(card1);
 			cards.push(card1);
-
+			
 			var tr_step = tb.appendChild(cDom("TR"));
 			tr_step.setAttribute("valign", "top");
 			var td1 = tr_step.appendChild(cDom("TD"));
@@ -565,8 +565,15 @@
 			but.cards = cards;
 			but.onclick = function(){
 				var cards = this.cards;
+
 				for (var i=0; i < cards.length; i++) {
 					var card = cards[i];
+					
+					if (i == 0) {
+						var zakno_val = card.fields[1].value;
+						card.fields[0].cnt.cnt.valFunc = zakno_val == "" ? zak_type+"_"+d2str(new Date()) : zakno_val;
+					}
+					
 					card.funcSave();
 				}
 

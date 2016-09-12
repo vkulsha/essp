@@ -1595,7 +1595,7 @@ function getFieldHtml(fn, ft, def) {
 class TDomValue {
 	constructor(dom, def, getValFunc){ 
 		if (def == undefined)  def = "";
-		this.getValFunc = getValFunc;
+		this._getValFunc = getValFunc;
 		this._dom = dom;
 		this.value = def; 
 
@@ -1606,14 +1606,16 @@ class TDomValue {
 
 	}
 	get value() { 
-		return this.getValFunc && typeof this.getValFunc == "function" ? this.getValFunc(this) : 
-			this.getValFunc ? this.getValFunc : 
+		return this._getValFunc && typeof this._getValFunc == "function" ? this._getValFunc(this) : 
+			this._getValFunc ? this._getValFunc : 
 			this._dom.value;
 		
 	}
 	set value(val) { this._dom.value = val; }
 	get dom() { return this._dom; }
 	set dom(dom) { this._dom = dom; }
+	get valFunc() { return this._getValFunc; };
+	set valFunc(val) { this._getValFunc = val; };
 }
 
 class TLabel extends TDomValue {
