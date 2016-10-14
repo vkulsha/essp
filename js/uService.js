@@ -1413,9 +1413,13 @@ function fillSelectDom2(dom, values) {
 	}
 }
 
-
 function d2str(d) {
 	var dt = d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2) + ("0" + d.getDate()).slice(-2) + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2);
+	return dt
+}
+
+function d2str2(d) {
+	var dt = ("0" + d.getDate()).slice(-2) + "." + ("0"+(d.getMonth()+1)).slice(-2) + "." + d.getFullYear();
 	return dt
 }
 
@@ -1639,7 +1643,20 @@ class TEdit extends TDomValue {
 }
 
 class TDate extends TDomValue {
-	constructor(def, getValFunc, parentDom) { super(cInp("date", null, parentDom), def, getValFunc); }
+	constructor(def, getValFunc, parentDom) { 
+		if (getBrowser() == "Firefox" || getBrowser() == "IE") {
+			super(cInp("text", null, parentDom), def, getValFunc); 
+			$(this.dom).datepicker($.extend({
+                inline: true,
+                changeYear: true,
+                changeMonth: true,
+				}, $.datepicker.regional['ru']
+			));
+			
+		} else {
+			super(cInp("date", null, parentDom), def, getValFunc); 
+		}
+	}
 }
 
 class TMemo extends TDomValue {
