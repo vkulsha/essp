@@ -610,8 +610,8 @@
 						}
 					}
 				}
-				var zakno_val = maxDateField ? objectlink.gOrm("gN", [maxDateField.cid]) + " " + d2str2(maxDate) : "";
-
+				var zakno_val = maxDateField ? objectlink.gOrm("gN", [maxDateField.parentField.cid]) + ". " + objectlink.gOrm("gN", [maxDateField.cid]) + " " + d2str2(maxDate) : "";
+				
 				for (var i=0; i < cards.length; i++) {
 					var card = cards[i];
 					
