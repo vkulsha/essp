@@ -28,6 +28,14 @@ var isMobile = {
     }
 };
 
+function inherit(proto) {
+  function F() {}
+  F.prototype = proto;
+  var object = new F;
+  return object;
+}
+if (!Object.create) Object.create = inherit;
+
 $.extend($.expr[':'], {
   inview: function (el) {
     var $e = $(el),

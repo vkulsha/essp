@@ -598,7 +598,7 @@
 				var maxDate = new Date("1900-01-01");
 				var maxDateField;
 				
-				for (var i=0; i < cards.length; i++) {
+				for (var i=1; i < cards.length; i++) {
 					var card = cards[i];
 					for (var j=0; j < card.fields.length; j++) {
 						if (card.fields[j].cnt.cnt instanceof TDate) {
@@ -611,7 +611,7 @@
 					}
 				}
 				var zakno_val = maxDateField ? objectlink.gOrm("gN", [maxDateField.parentField.cid]) + ". " + objectlink.gOrm("gN", [maxDateField.cid]) + " " + d2str2(maxDate) : "";
-				
+
 				for (var i=0; i < cards.length; i++) {
 					var card = cards[i];
 					
