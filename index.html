@@ -148,13 +148,18 @@
 ///table1
 		var fields = ["БС","БС адрес","БС вид работ","Заказы ПИР","Заказы СМР"];
 		var sel = objectlink.gOrm("gTq2",[fields,[],[],0]);
-		sel = "select "+decorateArr(fields, "`").join(",")+" from ("+sel+")x where 1=1 ";
-
+		sel = 'select *, case when `Заказы СМР` is not null and SUBSTR(RIGHT(`Заказы СМР`,10),3,1) = "." then `Заказы СМР` when `Заказы ПИР` is not null and SUBSTR(RIGHT(`Заказы ПИР`,10),3,1) = "." then `Заказы ПИР` else null end ddd from ('+sel+')x where 1=1 ';
+		sel = 'select *, TO_DAYS(NOW()) - TO_DAYS(DATE(CONCAT(RIGHT(ddd, 4), "-", SUBSTR(RIGHT(ddd, 10),4,2), "-", SUBSTR(RIGHT(ddd, 10),1,2)))) dd from ('+sel+')x where 1=1 ';
+		sel = "select "+decorateArr(fields, "`").join(",")+", dd from ("+sel+")x where 1=1 ";
 		var query = { select:sel, where:"", order:""	};
 		var colors = [
 			new RowColorMarker({
 				color: "#ffeeee",
 				conditions: [new FieldCondition({field: "Заказы ПИР", compareType: "!=", value: "", condType: "and"})]
+			}),
+			new RowColorMarker({
+				color: "#ff6666",
+				conditions: [new FieldCondition({field: "dd", compareType: ">", value: "14", condType: "and"})]
 			}),
 			new RowColorMarker({
 				color: "#eeffee",
@@ -169,6 +174,7 @@
 			new Column({'id' : 2,  'name' : 'БС вид работ', 'caption' : 'Вид работ', 'width' : 100}),
 			new Column({'id' : 3,  'name' : 'Заказы ПИР', 'caption' : 'ПИР (Р1)', 'width' : 120}),
 			new Column({'id' : 4,  'name' : 'Заказы СМР', 'caption' : 'СМР (Р2)', 'width' : 120}),
+			new Column({'id' : 5,  'name' : 'dd', 'caption' : 'Просрочено, дней', 'width' : 120/*, 'visible' : false*/}),
 		];
 		var opts = {tableWidth: 1200, tableHeight: tbHeight, columns: colsOpts, rowsColor: colors, cols2Button: [3,4]};
 		
@@ -699,7 +705,36 @@
 			}
 			
 			return tb;
-		}		
+		}
+
+		function stringToDate(_date,_format,_delimiter)	{
+					var formatLowerCase=_format.toLowerCase();
+					var formatItems=formatLowerCase.split(_delimiter);
+					var dateItems=_date.split(_delimiter);
+					var monthIndex=formatItems.indexOf("mm");
+					var dayIndex=formatItems.indexOf("dd");
+					var yearIndex=formatItems.indexOf("yyyy");
+					var month=parseInt(dateItems[monthIndex]);
+					month-=1;
+					var formatedDate = new Date(dateItems[yearIndex],month,dateItems[dayIndex]);
+					return formatedDate;
+		}
+/*		
+		for (var i=0; i < jsTable.rows.get().length; i++) {
+			var bs = jsTable.rows.get()[i][0];
+			var xxx = jsTable.rows.get()[i][4] || jsTable.rows.get()[i][3];
+
+			if (xxx) {
+				xxx = xxx.slice(-10);
+				if (xxx[2] == "." && xxx[5] == ".") {
+					var x = (new Date() - stringToDate(xxx, "dd.mm.yyyy", "."))/1000/60/60/24;
+					if (x > 14) {
+						console.log(bs + " " + x + "days");
+					}
+				}
+			}
+		}
+*/		
 		
 	})
 </script>
