@@ -6,6 +6,7 @@ class DB {
 	private $pass   = 'password';
  
 	private $options = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+							 PDO::MYSQL_ATTR_INIT_COMMAND => 'SET SQL_BIG_SELECTS=1',
 							 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_NUM);
 	public $db;
 
